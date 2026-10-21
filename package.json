@@ -1,0 +1,31 @@
+{
+  "name": "site-eventos-back",
+  "version": "1.0.0",
+  "description": "Backend (API Node.js + Firebase) do Sistema SaaS de Landing Pages para Eventos e Aniversários",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MateusNascimento2/site-eventos-back.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MateusNascimento2/site-eventos-back/issues"
+  },
+  "homepage": "https://github.com/MateusNascimento2/site-eventos-back#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "firebase-admin": "^14.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
