@@ -1,9 +1,16 @@
 const { Router } = require('express');
+const { createHealthRouter } = require('./health');
 
-const router = Router();
+function createRoutes({ checkDatabase }) {
+  const router = Router();
 
-router.get('/', (req, res) => {
-  res.json({ status: 'API no ar' });
-});
+  router.get('/', (req, res) => {
+    res.json({ status: 'API no ar' });
+  });
 
-module.exports = router;
+  router.use('/health', createHealthRouter({ checkDatabase }));
+
+  return router;
+}
+
+module.exports = { createRoutes };

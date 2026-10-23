@@ -1,14 +1,15 @@
 const express = require('express');
 const cors = require('cors');
-const routes = require('../presentation/http/routes');
+const { createRoutes } = require('../presentation/http/routes');
 const { notFound, errorHandler } = require('../presentation/http/middlewares/errorHandler');
+const { checkDatabase: defaultCheckDatabase } = require('../infrastructure/firebase/healthCheck');
 
-function createApp() {
+function createApp({ checkDatabase = defaultCheckDatabase } = {}) {
   const app = express();
 
   app.use(cors());
   app.use(express.json());
-  app.use(routes);
+  app.use(createRoutes({ checkDatabase }));
   app.use(notFound);
   app.use(errorHandler);
 
