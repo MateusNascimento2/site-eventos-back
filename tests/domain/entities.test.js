@@ -95,10 +95,22 @@ describe('Contratos dos repositórios', () => {
     await new GuestRepository().listByEvent();
     await new GiftRepository().delete();
 
-    expect(logSpy).toHaveBeenCalledWith('EventRepository.create');
-    expect(logSpy).toHaveBeenCalledWith('GuestRepository.listByEvent');
-    expect(logSpy).toHaveBeenCalledWith('GiftRepository.delete');
+    expect(logSpy.mock.calls).toEqual([['create'], ['listByEvent'], ['delete']]);
 
     logSpy.mockRestore();
+  });
+});
+
+describe('Event (limites)', () => {
+  it('rejeita título e descrição muito longos', () => {
+    expect(() => new Event({ ...eventoValido, title: 'a'.repeat(121) })).toThrow(ValidationError);
+    expect(() => new Event({ ...eventoValido, description: 'a'.repeat(1001) })).toThrow(
+      ValidationError,
+    );
+  });
+
+  it('rejeita descrição e layout que não são texto', () => {
+    expect(() => new Event({ ...eventoValido, description: 123 })).toThrow(ValidationError);
+    expect(() => new Event({ ...eventoValido, layout: { x: 1 } })).toThrow(ValidationError);
   });
 });

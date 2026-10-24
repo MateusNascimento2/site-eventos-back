@@ -1,7 +1,8 @@
 const { Router } = require('express');
 const { createHealthRouter } = require('./health');
+const { createEventRoutes } = require('./events');
 
-function createRoutes({ checkDatabase }) {
+function createRoutes({ checkDatabase, eventController, authenticate }) {
   const router = Router();
 
   router.get('/', (req, res) => {
@@ -9,6 +10,7 @@ function createRoutes({ checkDatabase }) {
   });
 
   router.use('/health', createHealthRouter({ checkDatabase }));
+  router.use('/events', createEventRoutes({ eventController, authenticate }));
 
   return router;
 }

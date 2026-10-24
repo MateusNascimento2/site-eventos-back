@@ -1,6 +1,8 @@
 const { ValidationError } = require('../errors');
 
 const LAYOUT_PADRAO = 'basico';
+const TITULO_MAXIMO = 120;
+const DESCRICAO_MAXIMA = 1000;
 
 function textoValido(valor) {
   return typeof valor === 'string' && valor.trim().length > 0;
@@ -31,6 +33,13 @@ class Event {
     if (!textoValido(title)) throw new ValidationError('title é obrigatório');
     if (!dataValida(date)) throw new ValidationError('date deve estar no formato AAAA-MM-DD');
     if (!textoValido(location)) throw new ValidationError('location é obrigatório');
+    if (title.trim().length > TITULO_MAXIMO) {
+      throw new ValidationError(`title deve ter no máximo ${TITULO_MAXIMO} caracteres`);
+    }
+    if (typeof description !== 'string' || description.length > DESCRICAO_MAXIMA) {
+      throw new ValidationError(`description deve ter no máximo ${DESCRICAO_MAXIMA} caracteres`);
+    }
+    if (!textoValido(layout)) throw new ValidationError('layout deve ser um texto');
 
     this.id = id;
     this.organizerId = organizerId;

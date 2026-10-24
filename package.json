@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"tests/**/*.js\" index.js eslint.config.js",
     "test:conexao": "node scripts/teste-conexao.js",
-    "test:fumaca": "node scripts/teste-fumaca.js"
+    "test:fumaca": "node scripts/teste-fumaca.js",
+    "test:repositorio": "node scripts/teste-repositorio.js"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,13 @@
     "firebase-admin": "^13.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1"
   }
 }
