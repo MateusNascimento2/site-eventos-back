@@ -33,6 +33,17 @@ class FirestoreEventRepository extends EventRepository {
     // Ordena por data aqui para não exigir índice composto no Firestore
     return snapshot.docs.map(paraEvento).sort((a, b) => a.date.localeCompare(b.date));
   }
+
+  async update(id, dados) {
+    const ref = this.db.collection(COLECAO).doc(id);
+    await ref.update(dados);
+    return this.findById(id);
+  }
+
+  async delete(id) {
+    // Apaga também as subcoleções guests e gifts
+    await this.db.recursiveDelete(this.db.collection(COLECAO).doc(id));
+  }
 }
 
 module.exports = { FirestoreEventRepository };

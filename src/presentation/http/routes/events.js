@@ -7,6 +7,8 @@ function createEventRoutes({ eventController, authenticate }) {
   router.post('/', eventController.create);
   router.get('/', eventController.list);
   router.get('/:id', eventController.getById);
+  router.put('/:id', eventController.update);
+  router.delete('/:id', eventController.remove);
 
   return router;
 }

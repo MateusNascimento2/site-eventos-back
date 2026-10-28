@@ -30,4 +30,18 @@ class NotFoundError extends Error {
   }
 }
 
-module.exports = { ValidationError, UnauthorizedError, ForbiddenError, NotFoundError };
+class ConflictError extends Error {
+  constructor(message = 'Conflito') {
+    super(message);
+    this.name = 'ConflictError';
+    this.status = 409;
+  }
+}
+
+module.exports = {
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+};
