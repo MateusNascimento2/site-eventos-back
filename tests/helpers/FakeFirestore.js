@@ -34,14 +34,18 @@ class FakeFirestore {
 
     return {
       doc: (id) => criarDoc(id || `doc-${++this.contador}`),
-      where: (campo, operador, valor) => ({
-        async get() {
-          const docs = Object.entries(armazenamento)
-            .filter(([, conteudo]) => conteudo[campo] === valor)
-            .map(([id, conteudo]) => ({ id, data: () => ({ ...conteudo }) }));
-          return { docs, empty: docs.length === 0 };
-        },
-      }),
+      where: (campo, operador, valor) => {
+        const consulta = {
+          async get() {
+            const docs = Object.entries(armazenamento)
+              .filter(([, conteudo]) => conteudo[campo] === valor)
+              .map(([id, conteudo]) => ({ id, data: () => ({ ...conteudo }) }));
+            return { docs, empty: docs.length === 0 };
+          },
+          limit: () => consulta,
+        };
+        return consulta;
+      },
     };
   }
 }

@@ -1,6 +1,6 @@
 const { Router } = require('express');
 
-function createEventRoutes({ eventController, authenticate }) {
+function createEventRoutes({ eventController, inviteController, authenticate }) {
   const router = Router();
 
   router.use(authenticate);
@@ -9,6 +9,8 @@ function createEventRoutes({ eventController, authenticate }) {
   router.get('/:id', eventController.getById);
   router.put('/:id', eventController.update);
   router.delete('/:id', eventController.remove);
+  router.post('/:id/invite', inviteController.create);
+  router.post('/:id/invite/regenerate', inviteController.regenerate);
 
   return router;
 }

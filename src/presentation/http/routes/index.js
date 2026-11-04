@@ -3,7 +3,13 @@ const { createHealthRouter } = require('./health');
 const { createEventRoutes } = require('./events');
 const { createOrganizerRoutes } = require('./organizers');
 
-function createRoutes({ checkDatabase, eventController, organizerController, authenticate }) {
+function createRoutes({
+  checkDatabase,
+  eventController,
+  inviteController,
+  organizerController,
+  authenticate,
+}) {
   const router = Router();
 
   router.get('/', (req, res) => {
@@ -11,7 +17,7 @@ function createRoutes({ checkDatabase, eventController, organizerController, aut
   });
 
   router.use('/health', createHealthRouter({ checkDatabase }));
-  router.use('/events', createEventRoutes({ eventController, authenticate }));
+  router.use('/events', createEventRoutes({ eventController, inviteController, authenticate }));
   router.use('/organizers', createOrganizerRoutes({ organizerController, authenticate }));
 
   return router;

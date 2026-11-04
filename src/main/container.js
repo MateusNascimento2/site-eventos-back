@@ -7,6 +7,8 @@ const { ListEvents } = require('../application/use-cases/ListEvents');
 const { GetEvent } = require('../application/use-cases/GetEvent');
 const { UpdateEvent } = require('../application/use-cases/UpdateEvent');
 const { DeleteEvent } = require('../application/use-cases/DeleteEvent');
+const { CreateInvite } = require('../application/use-cases/CreateInvite');
+const { RegenerateInvite } = require('../application/use-cases/RegenerateInvite');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
 const {
@@ -15,8 +17,10 @@ const {
 const {
   FirestoreOrganizerRepository,
 } = require('../infrastructure/repositories/FirestoreOrganizerRepository');
+const { generateSlug: cryptoGenerateSlug } = require('../infrastructure/security/generateSlug');
 const { verifyToken: firebaseVerifyToken } = require('../infrastructure/firebase/tokenVerifier');
 const { EventController } = require('../presentation/http/controllers/EventController');
+const { InviteController } = require('../presentation/http/controllers/InviteController');
 const { OrganizerController } = require('../presentation/http/controllers/OrganizerController');
 const { createAuthenticate } = require('../presentation/http/middlewares/authenticate');
 
@@ -30,6 +34,8 @@ function buildContainer({
   eventRepository = new FirestoreEventRepository(lazyDb),
   organizerRepository = new FirestoreOrganizerRepository(lazyDb),
   verifyToken = firebaseVerifyToken,
+  generateSlug = cryptoGenerateSlug,
+  getFrontendUrl = () => process.env.FRONTEND_URL,
 } = {}) {
   const getEvent = new GetEvent({ eventRepository });
 
@@ -41,6 +47,12 @@ function buildContainer({
     deleteEvent: new DeleteEvent({ eventRepository, getEvent }),
   });
 
+  const inviteController = new InviteController({
+    createInvite: new CreateInvite({ eventRepository, getEvent, generateSlug }),
+    regenerateInvite: new RegenerateInvite({ eventRepository, getEvent, generateSlug }),
+    getFrontendUrl,
+  });
+
   const organizerController = new OrganizerController({
     createOrganizer: new CreateOrganizer({ organizerRepository }),
     getOrganizer: new GetOrganizer({ organizerRepository }),
@@ -48,6 +60,7 @@ function buildContainer({
 
   return {
     eventController,
+    inviteController,
     organizerController,
     authenticate: createAuthenticate({ verifyToken }),
   };

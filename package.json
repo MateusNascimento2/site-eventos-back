@@ -11,7 +11,8 @@
     "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"tests/**/*.js\" index.js eslint.config.js",
     "test:conexao": "node scripts/teste-conexao.js",
     "test:fumaca": "node scripts/teste-fumaca.js",
-    "test:repositorio": "node scripts/teste-repositorio.js"
+    "test:repositorio": "node scripts/teste-repositorio.js",
+    "test:rotas": "node scripts/teste-rotas.js"
   },
   "repository": {
     "type": "git",

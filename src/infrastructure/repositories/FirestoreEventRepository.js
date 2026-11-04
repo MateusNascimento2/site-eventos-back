@@ -24,6 +24,11 @@ class FirestoreEventRepository extends EventRepository {
     return doc.exists ? paraEvento(doc) : null;
   }
 
+  async findBySlug(slug) {
+    const snapshot = await this.db.collection(COLECAO).where('slug', '==', slug).limit(1).get();
+    return snapshot.empty ? null : paraEvento(snapshot.docs[0]);
+  }
+
   async findByOrganizer(organizerId) {
     const snapshot = await this.db
       .collection(COLECAO)

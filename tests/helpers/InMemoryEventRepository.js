@@ -18,6 +18,10 @@ class InMemoryEventRepository extends EventRepository {
     return this.events.find((evento) => evento.id === id) || null;
   }
 
+  async findBySlug(slug) {
+    return this.events.find((evento) => evento.slug === slug) || null;
+  }
+
   async findByOrganizer(organizerId) {
     return this.events.filter((evento) => evento.organizerId === organizerId);
   }
