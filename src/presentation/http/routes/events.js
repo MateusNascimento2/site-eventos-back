@@ -11,6 +11,7 @@ function createEventRoutes({ eventController, inviteController, authenticate }) 
   router.delete('/:id', eventController.remove);
   router.post('/:id/invite', inviteController.create);
   router.post('/:id/invite/regenerate', inviteController.regenerate);
+  router.delete('/:id/invite', inviteController.disable);
 
   return router;
 }

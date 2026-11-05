@@ -57,10 +57,11 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 
 ### Públicas
 
-| Método | Rota               | Resposta                                    |
-| ------ | ------------------ | ------------------------------------------- |
-| GET    | `/`                | `200 { "status": "API no ar" }`             |
-| GET    | `/health/firebase` | `200` se o Firestore responde, `503` se não |
+| Método | Rota               | Resposta                                                                                         |
+| ------ | ------------------ | ------------------------------------------------------------------------------------------------ |
+| GET    | `/`                | `200 { "status": "API no ar" }`                                                                  |
+| GET    | `/health/firebase` | `200` se o Firestore responde, `503` se não                                                      |
+| GET    | `/invites/:slug`   | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
 
 ### Organizador (protegidas)
 
@@ -93,6 +94,7 @@ Erros: `400` sem nome, `409 Organizador já cadastrado`, e `404 Organizador não
 | DELETE | `/events/:id`                   | Remove o evento, com convidados e presentes         | 204                            |
 | POST   | `/events/:id/invite`            | Gera o link do convite, ou devolve o atual          | 201 (novo) ou 200 (já existia) |
 | POST   | `/events/:id/invite/regenerate` | Gera um novo link; o antigo deixa de funcionar      | 200                            |
+| DELETE | `/events/:id/invite`            | Desativa o convite: o link deixa de funcionar       | 204                            |
 
 Campos do corpo em `POST` e `PUT`:
 
@@ -135,7 +137,7 @@ Erros comuns:
 
 ### Convite (protegidas)
 
-`POST /events/:id/invite` gera o `slug` do convite: 12 caracteres aleatórios e seguros para URL. Se o evento já tem convite, devolve o mesmo link (200). `POST /events/:id/invite/regenerate` troca o `slug`, e o link antigo deixa de funcionar. Nas duas, não há corpo.
+`POST /events/:id/invite` gera o `slug` do convite: 12 caracteres aleatórios e seguros para URL. Se o evento já tem convite, devolve o mesmo link (200). `POST /events/:id/invite/regenerate` troca o `slug`, e o link antigo deixa de funcionar. Nas duas, não há corpo. `DELETE /events/:id/invite` desativa o convite (o `slug` é apagado) e devolve `204`, mesmo que o convite já estivesse desativado. Depois disso, `POST /events/:id/invite` gera um link novo.
 
 ```json
 {
@@ -146,6 +148,23 @@ Erros comuns:
 ```
 
 A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`. Sem `FRONTEND_URL`, a `url` vem `null` e o front monta o link com o `slug`. Evento inexistente ou de outro organizador devolve `404`.
+
+### Convite público (sem login)
+
+`GET /invites/:slug` é a rota que a página do convite usa. Não precisa de token e devolve só o que o convidado pode ver:
+
+```json
+{
+  "slug": "k3Jd9xQ_a1Zb",
+  "title": "Casamento",
+  "date": "2026-12-01",
+  "location": "Rio de Janeiro",
+  "description": "Venha celebrar com a gente",
+  "layout": "basico"
+}
+```
+
+Não devolve `id`, `organizerId`, `createdAt` nem dados de Pix. Slug inexistente, de formato inválido, trocado ou desativado devolve `404 Convite não encontrado`. A resposta sai com `Cache-Control: no-store`, para o link desativado parar de funcionar na hora.
 
 ### Exemplo
 

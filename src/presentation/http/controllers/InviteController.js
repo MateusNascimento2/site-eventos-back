@@ -1,9 +1,10 @@
 const CAMINHO_CONVITE = '/convite';
 
 class InviteController {
-  constructor({ createInvite, regenerateInvite, getFrontendUrl }) {
+  constructor({ createInvite, regenerateInvite, disableInvite, getFrontendUrl }) {
     this.createInvite = createInvite;
     this.regenerateInvite = regenerateInvite;
+    this.disableInvite = disableInvite;
     this.getFrontendUrl = getFrontendUrl;
   }
 
@@ -30,6 +31,14 @@ class InviteController {
       organizerId: req.user.uid,
     });
     res.json(this.paraResposta(event));
+  };
+
+  disable = async (req, res) => {
+    await this.disableInvite.execute({
+      eventId: req.params.id,
+      organizerId: req.user.uid,
+    });
+    res.status(204).end();
   };
 }
 

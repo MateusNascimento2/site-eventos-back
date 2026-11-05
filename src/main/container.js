@@ -9,6 +9,8 @@ const { UpdateEvent } = require('../application/use-cases/UpdateEvent');
 const { DeleteEvent } = require('../application/use-cases/DeleteEvent');
 const { CreateInvite } = require('../application/use-cases/CreateInvite');
 const { RegenerateInvite } = require('../application/use-cases/RegenerateInvite');
+const { DisableInvite } = require('../application/use-cases/DisableInvite');
+const { GetPublicInvite } = require('../application/use-cases/GetPublicInvite');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
 const {
@@ -21,6 +23,9 @@ const { generateSlug: cryptoGenerateSlug } = require('../infrastructure/security
 const { verifyToken: firebaseVerifyToken } = require('../infrastructure/firebase/tokenVerifier');
 const { EventController } = require('../presentation/http/controllers/EventController');
 const { InviteController } = require('../presentation/http/controllers/InviteController');
+const {
+  PublicInviteController,
+} = require('../presentation/http/controllers/PublicInviteController');
 const { OrganizerController } = require('../presentation/http/controllers/OrganizerController');
 const { createAuthenticate } = require('../presentation/http/middlewares/authenticate');
 
@@ -50,7 +55,12 @@ function buildContainer({
   const inviteController = new InviteController({
     createInvite: new CreateInvite({ eventRepository, getEvent, generateSlug }),
     regenerateInvite: new RegenerateInvite({ eventRepository, getEvent, generateSlug }),
+    disableInvite: new DisableInvite({ eventRepository, getEvent }),
     getFrontendUrl,
+  });
+
+  const publicInviteController = new PublicInviteController({
+    getPublicInvite: new GetPublicInvite({ eventRepository }),
   });
 
   const organizerController = new OrganizerController({
@@ -61,6 +71,7 @@ function buildContainer({
   return {
     eventController,
     inviteController,
+    publicInviteController,
     organizerController,
     authenticate: createAuthenticate({ verifyToken }),
   };

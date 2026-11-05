@@ -125,6 +125,18 @@ async function executar() {
       novoConvite.status === 200 && novoConvite.corpo?.slug !== convite.corpo?.slug,
     );
 
+    const publico = await chamar('GET', `/invites/${novoConvite.corpo?.slug}`);
+    verificar(
+      'GET /invites/:slug abre sem login e não expõe dados internos (200)',
+      publico.status === 200 &&
+        publico.corpo?.title === 'Título editado' &&
+        !('organizerId' in publico.corpo) &&
+        !('id' in publico.corpo),
+    );
+
+    const antigo = await chamar('GET', `/invites/${convite.corpo?.slug}`);
+    verificar('o slug antigo devolve 404 depois de regenerar', antigo.status === 404);
+
     const inexistente = await chamar('GET', '/events/id-que-nao-existe', { token });
     verificar('GET /events/:id inexistente devolve 404', inexistente.status === 404);
 
@@ -143,6 +155,13 @@ async function executar() {
     } else {
       console.log('PULADO - teste com outro organizador (defina TOKEN_2 ou TESTE_EMAIL_2/SENHA_2)');
     }
+
+    const desativado = await chamar('DELETE', `/events/${id}/invite`, { token });
+    const aposDesativar = await chamar('GET', `/invites/${novoConvite.corpo?.slug}`);
+    verificar(
+      'DELETE /events/:id/invite desativa o convite (204) e o link devolve 404',
+      desativado.status === 204 && aposDesativar.status === 404,
+    );
 
     const removido = await chamar('DELETE', `/events/${id}`, { token });
     verificar('DELETE /events/:id devolve 204', removido.status === 204);
