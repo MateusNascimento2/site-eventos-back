@@ -11,11 +11,15 @@ const { CreateInvite } = require('../application/use-cases/CreateInvite');
 const { RegenerateInvite } = require('../application/use-cases/RegenerateInvite');
 const { DisableInvite } = require('../application/use-cases/DisableInvite');
 const { GetPublicInvite } = require('../application/use-cases/GetPublicInvite');
+const { CreateRsvp } = require('../application/use-cases/CreateRsvp');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
 const {
   FirestoreEventRepository,
 } = require('../infrastructure/repositories/FirestoreEventRepository');
+const {
+  FirestoreGuestRepository,
+} = require('../infrastructure/repositories/FirestoreGuestRepository');
 const {
   FirestoreOrganizerRepository,
 } = require('../infrastructure/repositories/FirestoreOrganizerRepository');
@@ -38,6 +42,7 @@ const lazyDb = {
 function buildContainer({
   eventRepository = new FirestoreEventRepository(lazyDb),
   organizerRepository = new FirestoreOrganizerRepository(lazyDb),
+  guestRepository = new FirestoreGuestRepository(lazyDb),
   verifyToken = firebaseVerifyToken,
   generateSlug = cryptoGenerateSlug,
   getFrontendUrl = () => process.env.FRONTEND_URL,
@@ -61,6 +66,7 @@ function buildContainer({
 
   const publicInviteController = new PublicInviteController({
     getPublicInvite: new GetPublicInvite({ eventRepository }),
+    createRsvp: new CreateRsvp({ eventRepository, guestRepository }),
   });
 
   const organizerController = new OrganizerController({

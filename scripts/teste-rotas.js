@@ -134,6 +134,37 @@ async function executar() {
         !('id' in publico.corpo),
     );
 
+    const nomeConvidado = `Convidado Teste ${Date.now()}`;
+    const emailConvidado = `convidado${Date.now()}@teste.com`;
+    const rsvp = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      corpo: {
+        name: nomeConvidado,
+        email: emailConvidado,
+        phone: '(21) 98765-4321',
+        confirmed: true,
+        plusOne: true,
+      },
+    });
+    verificar(
+      'POST /invites/:slug/rsvp confirma presença sem login (201)',
+      rsvp.status === 201 && rsvp.corpo?.name === nomeConvidado && rsvp.corpo?.plusOne === true,
+    );
+
+    const rsvpRepetido = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      corpo: {
+        name: 'Outro Nome',
+        email: emailConvidado.toUpperCase(),
+        phone: '21999998888',
+        confirmed: false,
+      },
+    });
+    verificar('o mesmo e-mail confirmando de novo devolve 409', rsvpRepetido.status === 409);
+
+    const rsvpInvalido = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      corpo: { name: 'Sem confirmação', email: emailConvidado, phone: '21999998888' },
+    });
+    verificar('POST /invites/:slug/rsvp sem confirmed devolve 400', rsvpInvalido.status === 400);
+
     const antigo = await chamar('GET', `/invites/${convite.corpo?.slug}`);
     verificar('o slug antigo devolve 404 depois de regenerar', antigo.status === 404);
 
@@ -162,6 +193,16 @@ async function executar() {
       'DELETE /events/:id/invite desativa o convite (204) e o link devolve 404',
       desativado.status === 204 && aposDesativar.status === 404,
     );
+
+    const rsvpAposDesativar = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      corpo: {
+        name: 'Depois de desativar',
+        email: 'depois@teste.com',
+        phone: '21999998888',
+        confirmed: true,
+      },
+    });
+    verificar('RSVP com o convite desativado devolve 404', rsvpAposDesativar.status === 404);
 
     const removido = await chamar('DELETE', `/events/${id}`, { token });
     verificar('DELETE /events/:id devolve 204', removido.status === 204);

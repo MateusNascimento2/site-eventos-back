@@ -1,6 +1,4 @@
-const { NotFoundError } = require('../../domain/errors');
-
-const SLUG_VALIDO = /^[A-Za-z0-9_-]{12}$/;
+const { findInviteEvent } = require('./findInviteEvent');
 
 class GetPublicInvite {
   constructor({ eventRepository }) {
@@ -8,11 +6,9 @@ class GetPublicInvite {
   }
 
   async execute({ slug }) {
-    if (!SLUG_VALIDO.test(slug)) throw new NotFoundError('Convite não encontrado');
+    const event = await findInviteEvent({ eventRepository: this.eventRepository, slug });
 
-    const event = await this.eventRepository.findBySlug(slug);
-    if (!event) throw new NotFoundError('Convite não encontrado');
-
+    // Só o que o convidado pode ver: nada de organizerId, id interno ou dados de Pix
     return {
       slug: event.slug,
       title: event.title,

@@ -5,6 +5,7 @@ function createInviteRoutes({ publicInviteController }) {
   const router = Router();
 
   router.get('/:slug', publicInviteController.get);
+  router.post('/:slug/rsvp', publicInviteController.rsvp);
 
   return router;
 }

@@ -57,11 +57,12 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 
 ### Públicas
 
-| Método | Rota               | Resposta                                                                                         |
-| ------ | ------------------ | ------------------------------------------------------------------------------------------------ |
-| GET    | `/`                | `200 { "status": "API no ar" }`                                                                  |
-| GET    | `/health/firebase` | `200` se o Firestore responde, `503` se não                                                      |
-| GET    | `/invites/:slug`   | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
+| Método | Rota                  | Resposta                                                                                         |
+| ------ | --------------------- | ------------------------------------------------------------------------------------------------ |
+| GET    | `/`                   | `200 { "status": "API no ar" }`                                                                  |
+| GET    | `/health/firebase`    | `200` se o Firestore responde, `503` se não                                                      |
+| GET    | `/invites/:slug`      | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
+| POST   | `/invites/:slug/rsvp` | O convidado confirma ou recusa presença (`201`)                                                  |
 
 ### Organizador (protegidas)
 
@@ -165,6 +166,40 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 ```
 
 Não devolve `id`, `organizerId`, `createdAt` nem dados de Pix. Slug inexistente, de formato inválido, trocado ou desativado devolve `404 Convite não encontrado`. A resposta sai com `Cache-Control: no-store`, para o link desativado parar de funcionar na hora.
+
+### Confirmação de presença (sem login)
+
+`POST /invites/:slug/rsvp` registra a resposta do convidado. Não precisa de token.
+
+| Campo       | Regra                                                               |
+| ----------- | ------------------------------------------------------------------- |
+| `name`      | Obrigatório, até 120 caracteres                                     |
+| `email`     | Obrigatório, e-mail válido, até 254 caracteres                      |
+| `phone`     | Obrigatório, telefone brasileiro com DDD (10 ou 11 dígitos)         |
+| `confirmed` | Obrigatório, `true` (vai) ou `false` (não vai)                      |
+| `plusOne`   | Opcional (padrão `false`), `true` só vale se `confirmed` for `true` |
+
+```json
+{
+  "name": "Ana Souza",
+  "email": "ana@email.com",
+  "phone": "(21) 98765-4321",
+  "confirmed": true,
+  "plusOne": true
+}
+```
+
+Resposta `201`:
+
+```json
+{ "name": "Ana Souza", "confirmed": true, "plusOne": true }
+```
+
+O convidado é identificado pelo e-mail. O mesmo e-mail não confirma duas vezes no mesmo evento, ignorando maiúsculas e espaços, e a resposta é `409 Esse e-mail já confirmou presença`. Pessoas com o mesmo nome e e-mails diferentes são aceitas, e o mesmo e-mail pode confirmar em eventos diferentes. O telefone é salvo só com dígitos (o `+55` é removido).
+
+E-mail e telefone são dados pessoais (LGPD). Eles não voltam na resposta da rota pública, e o front deve avisar o convidado de que os dados serão usados só para o evento. O convidado fica salvo em `events/{id}/guests`, e a data da confirmação sempre vem do servidor.
+
+Erros: `400` para dados inválidos, `409` para e-mail repetido, e `404 Convite não encontrado` se o link não existe, foi trocado ou foi desativado.
 
 ### Exemplo
 

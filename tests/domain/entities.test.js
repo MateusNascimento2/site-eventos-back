@@ -45,30 +45,93 @@ describe('Event', () => {
   });
 });
 
+const convidadoValido = {
+  name: 'Ana',
+  email: 'ana@teste.com',
+  phone: '(21) 98765-4321',
+  confirmed: true,
+};
+
 describe('Guest', () => {
   it('cria convidado confirmado com acompanhante', () => {
-    const convidado = new Guest({ name: ' Ana ', confirmed: true, plusOne: true });
+    const convidado = new Guest({ ...convidadoValido, name: ' Ana ', plusOne: true });
 
     expect(convidado.name).toBe('Ana');
     expect(convidado.plusOne).toBe(true);
   });
 
-  it('toPlain tem só os campos aceitos pelas regras do Firestore', () => {
-    const plano = new Guest({ name: 'Ana', confirmed: true }).toPlain();
+  it('normaliza o e-mail e o telefone', () => {
+    const convidado = new Guest({
+      ...convidadoValido,
+      email: '  Ana.Souza@Teste.COM ',
+      phone: '+55 (21) 98765-4321',
+    });
 
-    expect(Object.keys(plano).sort()).toEqual(['confirmed', 'createdAt', 'name', 'plusOne']);
+    expect(convidado.email).toBe('ana.souza@teste.com');
+    expect(convidado.phone).toBe('21987654321');
+  });
+
+  it('aceita telefone fixo e celular com DDD', () => {
+    expect(new Guest({ ...convidadoValido, phone: '2133334444' }).phone).toBe('2133334444');
+    expect(new Guest({ ...convidadoValido, phone: '21 9 8765 4321' }).phone).toBe('21987654321');
+  });
+
+  it('toPlain tem os campos do convidado, sem o id', () => {
+    const plano = new Guest({ ...convidadoValido, id: 'abc' }).toPlain();
+
+    expect(Object.keys(plano).sort()).toEqual([
+      'confirmed',
+      'createdAt',
+      'email',
+      'name',
+      'phone',
+      'plusOne',
+    ]);
   });
 
   it('rejeita acompanhante sem confirmação', () => {
-    expect(() => new Guest({ name: 'Ana', confirmed: false, plusOne: true })).toThrow(
+    expect(() => new Guest({ ...convidadoValido, confirmed: false, plusOne: true })).toThrow(
       ValidationError,
     );
   });
 
   it('rejeita nome vazio, nome longo e confirmed que não é booleano', () => {
-    expect(() => new Guest({ name: '', confirmed: true })).toThrow(ValidationError);
-    expect(() => new Guest({ name: 'a'.repeat(121), confirmed: true })).toThrow(ValidationError);
-    expect(() => new Guest({ name: 'Ana', confirmed: 'sim' })).toThrow(ValidationError);
+    expect(() => new Guest({ ...convidadoValido, name: '' })).toThrow(ValidationError);
+    expect(() => new Guest({ ...convidadoValido, name: 'a'.repeat(121) })).toThrow(ValidationError);
+    expect(() => new Guest({ ...convidadoValido, confirmed: 'sim' })).toThrow(ValidationError);
+  });
+
+  it('rejeita e-mail ausente ou inválido', () => {
+    for (const email of [
+      undefined,
+      '',
+      '   ',
+      'sem-arroba',
+      'a@b',
+      'a b@c.com',
+      'a/b@c.com',
+      123,
+    ]) {
+      expect(() => new Guest({ ...convidadoValido, email })).toThrow(ValidationError);
+    }
+    expect(() => new Guest({ ...convidadoValido, email: `${'a'.repeat(250)}@b.com` })).toThrow(
+      ValidationError,
+    );
+  });
+
+  it('rejeita telefone ausente ou inválido', () => {
+    for (const phone of [
+      undefined,
+      '',
+      '   ',
+      '12345',
+      'abc',
+      '0987654321',
+      '2188887777666',
+      123,
+    ]) {
+      expect(() => new Guest({ ...convidadoValido, phone })).toThrow(ValidationError);
+    }
   });
 });
 
