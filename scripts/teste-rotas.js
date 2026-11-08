@@ -165,6 +165,18 @@ async function executar() {
     });
     verificar('POST /invites/:slug/rsvp sem confirmed devolve 400', rsvpInvalido.status === 400);
 
+    const jsonQuebrado = await fetch(`${API_URL}/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{ "name": ',
+    });
+    verificar('JSON inválido devolve 400', jsonQuebrado.status === 400);
+
+    const corpoGrande = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      corpo: { name: 'a'.repeat(20000) },
+    });
+    verificar('corpo grande demais devolve 413', corpoGrande.status === 413);
+
     const antigo = await chamar('GET', `/invites/${convite.corpo?.slug}`);
     verificar('o slug antigo devolve 404 depois de regenerar', antigo.status === 404);
 

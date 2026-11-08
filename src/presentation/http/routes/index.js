@@ -11,6 +11,7 @@ function createRoutes({
   publicInviteController,
   organizerController,
   authenticate,
+  publicLimits,
 }) {
   const router = Router();
 
@@ -20,7 +21,7 @@ function createRoutes({
 
   router.use('/health', createHealthRouter({ checkDatabase }));
   router.use('/events', createEventRoutes({ eventController, inviteController, authenticate }));
-  router.use('/invites', createInviteRoutes({ publicInviteController }));
+  router.use('/invites', createInviteRoutes({ publicInviteController, publicLimits }));
   router.use('/organizers', createOrganizerRoutes({ organizerController, authenticate }));
 
   return router;

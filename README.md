@@ -18,13 +18,16 @@ A API sobe em `http://localhost:3000`.
 
 ## Variáveis de ambiente
 
-| Variável                | Descrição                                                    |
-| ----------------------- | ------------------------------------------------------------ |
-| `PORT`                  | Porta do servidor (padrão 3000)                              |
-| `FIREBASE_PROJECT_ID`   | ID do projeto no Firebase                                    |
-| `FIREBASE_CLIENT_EMAIL` | E-mail da conta de serviço                                   |
-| `FIREBASE_PRIVATE_KEY`  | Chave privada, entre aspas duplas, com `\n` literais         |
-| `FRONTEND_URL`          | URL do front (opcional), usada para montar o link do convite |
+| Variável                | Descrição                                                     |
+| ----------------------- | ------------------------------------------------------------- |
+| `PORT`                  | Porta do servidor (padrão 3000)                               |
+| `FIREBASE_PROJECT_ID`   | ID do projeto no Firebase                                     |
+| `FIREBASE_CLIENT_EMAIL` | E-mail da conta de serviço                                    |
+| `FIREBASE_PRIVATE_KEY`  | Chave privada, entre aspas duplas, com `\n` literais          |
+| `FRONTEND_URL`          | URL do front (opcional), usada para montar o link do convite  |
+| `CORS_ORIGINS`          | Outras origens do navegador, separadas por vírgula (opcional) |
+
+Com `FRONTEND_URL` ou `CORS_ORIGINS` preenchidos, só essas origens podem chamar a API pelo navegador (exemplo de `CORS_ORIGINS`: `http://localhost:5173`). Sem nenhuma das duas, qualquer origem é aceita, o que serve só para desenvolvimento. Postman e curl não são afetados.
 
 O servidor não inicia se alguma variável do Firebase estiver ausente. **Nunca** commite o `.env` nem o JSON da chave.
 
@@ -200,6 +203,13 @@ O convidado é identificado pelo e-mail. O mesmo e-mail não confirma duas vezes
 E-mail e telefone são dados pessoais (LGPD). Eles não voltam na resposta da rota pública, e o front deve avisar o convidado de que os dados serão usados só para o evento. O convidado fica salvo em `events/{id}/guests`, e a data da confirmação sempre vem do servidor.
 
 Erros: `400` para dados inválidos, `409` para e-mail repetido, e `404 Convite não encontrado` se o link não existe, foi trocado ou foi desativado.
+
+### Proteções da API
+
+- Corpo da requisição de até 16 KB. Acima disso a resposta é `413 Corpo da requisição grande demais`.
+- JSON malformado devolve `400 JSON inválido`.
+- As duas rotas públicas têm limite por IP em janelas de 15 minutos: `GET /invites/:slug` aceita 120 requisições e `POST /invites/:slug/rsvp` aceita 20. Passando disso a resposta é `429 Muitas requisições, tente novamente em alguns minutos`, com o header `Retry-After` em segundos. A contagem fica na memória de cada instância da Vercel, então ela reduz abuso simples, mas não é um bloqueio rígido.
+- O header `X-Powered-By` fica desligado.
 
 ### Exemplo
 
