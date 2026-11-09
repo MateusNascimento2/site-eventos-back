@@ -2,11 +2,16 @@ const { db } = require('../src/infrastructure/firebase/firebase');
 const {
   FirestoreEventRepository,
 } = require('../src/infrastructure/repositories/FirestoreEventRepository');
+const {
+  FirestoreGuestRepository,
+} = require('../src/infrastructure/repositories/FirestoreGuestRepository');
 const { Event } = require('../src/domain/entities/Event');
+const { Guest } = require('../src/domain/entities/Guest');
+const { ConflictError } = require('../src/domain/errors');
 
-// Testa o FirestoreEventRepository no Firestore e apaga o que criou
 async function executar() {
   const repositorio = new FirestoreEventRepository(db);
+  const convidados = new FirestoreGuestRepository(db);
   const organizerId = `repo-teste-${Date.now()}`;
   let id = null;
 
@@ -26,11 +31,32 @@ async function executar() {
     const lista = await repositorio.findByOrganizer(organizerId);
     const inexistente = await repositorio.findById('id-que-nao-existe');
 
+    const convidado = new Guest({
+      id: 'convidado-teste',
+      name: 'Convidado Teste',
+      email: 'convidado@teste.com',
+      phone: '21987654321',
+      confirmed: true,
+    });
+    await convidados.add(id, convidado);
+    let duplicado = false;
+    try {
+      await convidados.add(id, convidado);
+    } catch (erro) {
+      duplicado = erro instanceof ConflictError;
+    }
+    const guardados = await convidados.listByEvent(id);
+
     const verificacoes = [
       ['create devolve o evento com id', Boolean(id)],
       ['findById encontra o evento criado', encontrado?.title === criado.title],
       ['findByOrganizer lista só o evento do organizador', lista.length === 1],
       ['findById devolve null quando não existe', inexistente === null],
+      [
+        'add grava o convidado no evento',
+        guardados.length === 1 && guardados[0].email === 'convidado@teste.com',
+      ],
+      ['add com o mesmo id lança ConflictError', duplicado],
     ];
 
     let falhou = false;
@@ -43,8 +69,8 @@ async function executar() {
     console.log('Teste do repositório concluído com sucesso.');
   } finally {
     if (id) {
-      await db.collection('events').doc(id).delete();
-      console.log('3. Evento temporário removido.');
+      await repositorio.delete(id);
+      console.log('3. Evento temporário removido, com os convidados.');
     }
   }
 }
