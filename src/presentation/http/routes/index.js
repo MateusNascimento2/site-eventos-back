@@ -8,6 +8,7 @@ function createRoutes({
   checkDatabase,
   eventController,
   inviteController,
+  guestController,
   publicInviteController,
   organizerController,
   authenticate,
@@ -20,7 +21,10 @@ function createRoutes({
   });
 
   router.use('/health', createHealthRouter({ checkDatabase }));
-  router.use('/events', createEventRoutes({ eventController, inviteController, authenticate }));
+  router.use(
+    '/events',
+    createEventRoutes({ eventController, inviteController, guestController, authenticate }),
+  );
   router.use('/invites', createInviteRoutes({ publicInviteController, publicLimits }));
   router.use('/organizers', createOrganizerRoutes({ organizerController, authenticate }));
 

@@ -160,6 +160,29 @@ async function executar() {
     });
     verificar('o mesmo e-mail confirmando de novo devolve 409', rsvpRepetido.status === 409);
 
+    const convidados = await chamar('GET', `/events/${id}/guests`, { token });
+    verificar(
+      'GET /events/:id/guests lista o convidado com o e-mail (200)',
+      convidados.status === 200 &&
+        convidados.corpo?.length === 1 &&
+        convidados.corpo[0].email === emailConvidado,
+    );
+
+    const soQuemNaoVai = await chamar('GET', `/events/${id}/guests?confirmed=false`, { token });
+    verificar(
+      'GET /events/:id/guests?confirmed=false não traz quem confirmou',
+      soQuemNaoVai.status === 200 && soQuemNaoVai.corpo?.length === 0,
+    );
+
+    const resumo = await chamar('GET', `/events/${id}/summary`, { token });
+    verificar(
+      'GET /events/:id/summary conta 1 confirmado e 1 acompanhante',
+      resumo.status === 200 &&
+        resumo.corpo?.confirmed === 1 &&
+        resumo.corpo?.plusOnes === 1 &&
+        resumo.corpo?.attending === 2,
+    );
+
     const rsvpInvalido = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
       corpo: { name: 'Sem confirmação', email: emailConvidado, phone: '21999998888' },
     });
@@ -191,9 +214,13 @@ async function executar() {
       });
       const alheioDelete = await chamar('DELETE', `/events/${id}`, { token: token2 });
       const alheioConvite = await chamar('POST', `/events/${id}/invite`, { token: token2 });
+      const alheioGuests = await chamar('GET', `/events/${id}/guests`, { token: token2 });
+      const alheioResumo = await chamar('GET', `/events/${id}/summary`, { token: token2 });
       verificar(
-        'outro organizador recebe 404 em GET, PUT, DELETE e convite',
-        [alheio, alheioPut, alheioDelete, alheioConvite].every((r) => r.status === 404),
+        'outro organizador recebe 404 em GET, PUT, DELETE, convite, lista e resumo',
+        [alheio, alheioPut, alheioDelete, alheioConvite, alheioGuests, alheioResumo].every(
+          (r) => r.status === 404,
+        ),
       );
     } else {
       console.log('PULADO - teste com outro organizador (defina TOKEN_2 ou TESTE_EMAIL_2/SENHA_2)');

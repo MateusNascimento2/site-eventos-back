@@ -153,6 +153,37 @@ Erros comuns:
 
 A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`. Sem `FRONTEND_URL`, a `url` vem `null` e o front monta o link com o `slug`. Evento inexistente ou de outro organizador devolve `404`.
 
+### Convidados do evento (protegidas)
+
+| Método | Rota                  | O que faz                                                   | Resposta |
+| ------ | --------------------- | ----------------------------------------------------------- | -------- |
+| GET    | `/events/:id/guests`  | Lista quem respondeu o convite, do mais antigo ao mais novo | 200      |
+| GET    | `/events/:id/summary` | Totais do evento para o painel                              | 200      |
+
+`GET /events/:id/guests` aceita o filtro `?confirmed=true` (quem vai) ou `?confirmed=false` (quem recusou). Qualquer outro valor devolve `400 confirmed deve ser true ou false`. Cada item da lista:
+
+```json
+{
+  "id": "9f2c...",
+  "name": "Ana Souza",
+  "email": "ana@email.com",
+  "phone": "21987654321",
+  "confirmed": true,
+  "plusOne": true,
+  "createdAt": "2026-11-06T22:00:00.000Z"
+}
+```
+
+`GET /events/:id/summary`:
+
+```json
+{ "total": 4, "confirmed": 3, "declined": 1, "plusOnes": 2, "attending": 5 }
+```
+
+`total` é quem respondeu, `declined` é quem disse que não vai, `plusOnes` conta os acompanhantes e `attending` é `confirmed + plusOnes`. Convidado que ainda não respondeu não aparece, porque a API só conhece quem respondeu o convite.
+
+As duas rotas só funcionam para o dono do evento (`404 Evento não encontrado` para evento de outro organizador, inexistente ou com `id` inválido) e saem com `Cache-Control: no-store`, porque trazem e-mail e telefone.
+
 ### Convite público (sem login)
 
 `GET /invites/:slug` é a rota que a página do convite usa. Não precisa de token e devolve só o que o convidado pode ver:

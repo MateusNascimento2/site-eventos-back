@@ -12,6 +12,8 @@ const { RegenerateInvite } = require('../application/use-cases/RegenerateInvite'
 const { DisableInvite } = require('../application/use-cases/DisableInvite');
 const { GetPublicInvite } = require('../application/use-cases/GetPublicInvite');
 const { CreateRsvp } = require('../application/use-cases/CreateRsvp');
+const { ListGuests } = require('../application/use-cases/ListGuests');
+const { GetEventSummary } = require('../application/use-cases/GetEventSummary');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
 const {
@@ -30,6 +32,7 @@ const { InviteController } = require('../presentation/http/controllers/InviteCon
 const {
   PublicInviteController,
 } = require('../presentation/http/controllers/PublicInviteController');
+const { GuestController } = require('../presentation/http/controllers/GuestController');
 const { OrganizerController } = require('../presentation/http/controllers/OrganizerController');
 const { createAuthenticate } = require('../presentation/http/middlewares/authenticate');
 
@@ -69,6 +72,11 @@ function buildContainer({
     createRsvp: new CreateRsvp({ eventRepository, guestRepository }),
   });
 
+  const guestController = new GuestController({
+    listGuests: new ListGuests({ guestRepository, getEvent }),
+    getEventSummary: new GetEventSummary({ guestRepository, getEvent }),
+  });
+
   const organizerController = new OrganizerController({
     createOrganizer: new CreateOrganizer({ organizerRepository }),
     getOrganizer: new GetOrganizer({ organizerRepository }),
@@ -78,6 +86,7 @@ function buildContainer({
     eventController,
     inviteController,
     publicInviteController,
+    guestController,
     organizerController,
     authenticate: createAuthenticate({ verifyToken }),
   };
