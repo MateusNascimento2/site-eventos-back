@@ -24,7 +24,6 @@ class GuestController {
       confirmed: confirmed === undefined ? undefined : FILTROS[confirmed],
     });
 
-    // Tem e-mail e telefone dos convidados, então não fica em cache
     res.set('Cache-Control', 'no-store');
     res.json(guests.map(paraResposta));
   };

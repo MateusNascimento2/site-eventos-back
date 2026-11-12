@@ -4,6 +4,11 @@ class GiftRepository {
     console.log('create');
   }
 
+  // findById(eventId, giftId) -> Gift ou null
+  async findById() {
+    console.log('findById');
+  }
+
   // listByEvent(eventId) -> Gift[]
   async listByEvent() {
     console.log('listByEvent');

@@ -1,4 +1,3 @@
-// Lista as origens permitidas a partir de FRONTEND_URL e CORS_ORIGINS (separadas por vírgula)
 function allowedOrigins(env) {
   const valores = [env.FRONTEND_URL, ...(env.CORS_ORIGINS || '').split(',')];
   const origens = [];
@@ -15,7 +14,6 @@ function allowedOrigins(env) {
   return origens;
 }
 
-// Sem origens configuradas libera tudo (desenvolvimento). Sem header Origin (Postman, curl) passa sempre
 function createCorsOrigin(getEnv = () => process.env) {
   return (origin, callback) => {
     const origens = allowedOrigins(getEnv());

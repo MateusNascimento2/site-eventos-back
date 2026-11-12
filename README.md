@@ -184,6 +184,35 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 
 As duas rotas só funcionam para o dono do evento (`404 Evento não encontrado` para evento de outro organizador, inexistente ou com `id` inválido) e saem com `Cache-Control: no-store`, porque trazem e-mail e telefone.
 
+### Presentes (protegidas)
+
+| Método | Rota                        | O que faz                                                      | Resposta |
+| ------ | --------------------------- | -------------------------------------------------------------- | -------- |
+| GET    | `/events/:id/gifts`         | Lista as sugestões de presente, das mais antigas às mais novas | 200      |
+| POST   | `/events/:id/gifts`         | Cadastra uma sugestão                                          | 201      |
+| PUT    | `/events/:id/gifts/:giftId` | Edita nome e/ou descrição                                      | 200      |
+| DELETE | `/events/:id/gifts/:giftId` | Remove a sugestão                                              | 204      |
+
+Campos do corpo em `POST` e `PUT`:
+
+| Campo         | Regra                                     |
+| ------------- | ----------------------------------------- |
+| `name`        | Obrigatório no `POST`, até 120 caracteres |
+| `description` | Opcional, até 300 caracteres              |
+
+Resposta de um presente:
+
+```json
+{
+  "id": "Xk29...",
+  "name": "Jogo de panelas",
+  "description": "Inox",
+  "createdAt": "2026-11-12T22:00:00.000Z"
+}
+```
+
+Cada evento aceita até 50 presentes (acima disso, `400`). O `PUT` sem nenhum campo editável devolve `400`. Evento de outro organizador ou inexistente devolve `404 Evento não encontrado`, e presente inexistente (ou já removido) devolve `404 Presente não encontrado`. Remover o evento apaga os presentes junto.
+
 ### Convite público (sem login)
 
 `GET /invites/:slug` é a rota que a página do convite usa. Não precisa de token e devolve só o que o convidado pode ver:

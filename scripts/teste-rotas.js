@@ -216,15 +216,65 @@ async function executar() {
       const alheioConvite = await chamar('POST', `/events/${id}/invite`, { token: token2 });
       const alheioGuests = await chamar('GET', `/events/${id}/guests`, { token: token2 });
       const alheioResumo = await chamar('GET', `/events/${id}/summary`, { token: token2 });
+      const alheioPresentes = await chamar('GET', `/events/${id}/gifts`, { token: token2 });
       verificar(
-        'outro organizador recebe 404 em GET, PUT, DELETE, convite, lista e resumo',
-        [alheio, alheioPut, alheioDelete, alheioConvite, alheioGuests, alheioResumo].every(
-          (r) => r.status === 404,
-        ),
+        'outro organizador recebe 404 em GET, PUT, DELETE, convite, lista, resumo e presentes',
+        [
+          alheio,
+          alheioPut,
+          alheioDelete,
+          alheioConvite,
+          alheioGuests,
+          alheioResumo,
+          alheioPresentes,
+        ].every((r) => r.status === 404),
       );
     } else {
       console.log('PULADO - teste com outro organizador (defina TOKEN_2 ou TESTE_EMAIL_2/SENHA_2)');
     }
+
+    const presente = await chamar('POST', `/events/${id}/gifts`, {
+      token,
+      corpo: { name: 'Jogo de panelas', description: 'Inox' },
+    });
+    verificar(
+      'POST /events/:id/gifts cria o presente (201)',
+      presente.status === 201 && presente.corpo?.name === 'Jogo de panelas',
+    );
+
+    const presenteInvalido = await chamar('POST', `/events/${id}/gifts`, {
+      token,
+      corpo: { description: 'sem nome' },
+    });
+    verificar('POST /events/:id/gifts sem name devolve 400', presenteInvalido.status === 400);
+
+    const presenteEditado = await chamar('PUT', `/events/${id}/gifts/${presente.corpo?.id}`, {
+      token,
+      corpo: { name: 'Jogo de panelas inox' },
+    });
+    verificar(
+      'PUT /events/:id/gifts/:giftId edita o nome e mantém a descrição (200)',
+      presenteEditado.status === 200 &&
+        presenteEditado.corpo?.name === 'Jogo de panelas inox' &&
+        presenteEditado.corpo?.description === 'Inox',
+    );
+
+    const presentes = await chamar('GET', `/events/${id}/gifts`, { token });
+    verificar(
+      'GET /events/:id/gifts lista o presente (200)',
+      presentes.status === 200 && presentes.corpo?.length === 1,
+    );
+
+    const presenteRemovido = await chamar('DELETE', `/events/${id}/gifts/${presente.corpo?.id}`, {
+      token,
+    });
+    const presenteDeNovo = await chamar('DELETE', `/events/${id}/gifts/${presente.corpo?.id}`, {
+      token,
+    });
+    verificar(
+      'DELETE /events/:id/gifts/:giftId remove (204) e repetir devolve 404',
+      presenteRemovido.status === 204 && presenteDeNovo.status === 404,
+    );
 
     const desativado = await chamar('DELETE', `/events/${id}/invite`, { token });
     const aposDesativar = await chamar('GET', `/invites/${novoConvite.corpo?.slug}`);

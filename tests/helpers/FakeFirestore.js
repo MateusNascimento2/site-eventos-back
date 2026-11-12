@@ -35,6 +35,9 @@ class FakeFirestore {
         if (!armazenamento[id]) throw new Error('documento não existe');
         armazenamento[id] = { ...armazenamento[id], ...campos };
       },
+      async delete() {
+        delete armazenamento[id];
+      },
       async get() {
         const conteudo = armazenamento[id];
         return {

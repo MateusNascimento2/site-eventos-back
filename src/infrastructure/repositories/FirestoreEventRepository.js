@@ -24,18 +24,12 @@ class FirestoreEventRepository extends EventRepository {
     return doc.exists ? paraEvento(doc) : null;
   }
 
-  async findBySlug(slug) {
-    const snapshot = await this.db.collection(COLECAO).where('slug', '==', slug).limit(1).get();
-    return snapshot.empty ? null : paraEvento(snapshot.docs[0]);
-  }
-
   async findByOrganizer(organizerId) {
     const snapshot = await this.db
       .collection(COLECAO)
       .where('organizerId', '==', organizerId)
       .get();
 
-    // Ordena por data aqui para não exigir índice composto no Firestore
     return snapshot.docs.map(paraEvento).sort((a, b) => a.date.localeCompare(b.date));
   }
 
@@ -46,7 +40,6 @@ class FirestoreEventRepository extends EventRepository {
   }
 
   async delete(id) {
-    // Apaga também as subcoleções guests e gifts
     await this.db.recursiveDelete(this.db.collection(COLECAO).doc(id));
   }
 }

@@ -157,8 +157,9 @@ describe('Contratos dos repositórios', () => {
     await new EventRepository().create();
     await new GuestRepository().listByEvent();
     await new GiftRepository().delete();
+    await new GiftRepository().findById();
 
-    expect(logSpy.mock.calls).toEqual([['create'], ['listByEvent'], ['delete']]);
+    expect(logSpy.mock.calls).toEqual([['create'], ['listByEvent'], ['delete'], ['findById']]);
 
     logSpy.mockRestore();
   });

@@ -6,7 +6,6 @@ class ListGuests {
     this.getEvent = getEvent;
   }
 
-  // confirmed: undefined lista todos, true só quem vai, false só quem não vai
   async execute({ eventId, organizerId, confirmed }) {
     if (confirmed !== undefined && typeof confirmed !== 'boolean') {
       throw new ValidationError('confirmed deve ser true ou false');

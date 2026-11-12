@@ -11,7 +11,6 @@ class OrganizerController {
   create = async (req, res) => {
     const { name } = req.body || {};
 
-    // uid e email vêm do token
     const organizer = await this.createOrganizer.execute({
       uid: req.user.uid,
       email: req.user.email,

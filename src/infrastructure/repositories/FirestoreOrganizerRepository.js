@@ -10,7 +10,6 @@ class FirestoreOrganizerRepository extends OrganizerRepository {
   }
 
   async create(organizer) {
-    // O id do documento é o uid do Firebase Auth
     await this.db.collection(COLECAO).doc(organizer.id).set(organizer.toPlain());
     return organizer;
   }

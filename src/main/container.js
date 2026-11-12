@@ -12,6 +12,10 @@ const { RegenerateInvite } = require('../application/use-cases/RegenerateInvite'
 const { DisableInvite } = require('../application/use-cases/DisableInvite');
 const { GetPublicInvite } = require('../application/use-cases/GetPublicInvite');
 const { CreateRsvp } = require('../application/use-cases/CreateRsvp');
+const { CreateGift } = require('../application/use-cases/CreateGift');
+const { ListGifts } = require('../application/use-cases/ListGifts');
+const { UpdateGift } = require('../application/use-cases/UpdateGift');
+const { DeleteGift } = require('../application/use-cases/DeleteGift');
 const { ListGuests } = require('../application/use-cases/ListGuests');
 const { GetEventSummary } = require('../application/use-cases/GetEventSummary');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
@@ -23,6 +27,9 @@ const {
   FirestoreGuestRepository,
 } = require('../infrastructure/repositories/FirestoreGuestRepository');
 const {
+  FirestoreGiftRepository,
+} = require('../infrastructure/repositories/FirestoreGiftRepository');
+const {
   FirestoreOrganizerRepository,
 } = require('../infrastructure/repositories/FirestoreOrganizerRepository');
 const { generateSlug: cryptoGenerateSlug } = require('../infrastructure/security/generateSlug');
@@ -32,6 +39,7 @@ const { InviteController } = require('../presentation/http/controllers/InviteCon
 const {
   PublicInviteController,
 } = require('../presentation/http/controllers/PublicInviteController');
+const { GiftController } = require('../presentation/http/controllers/GiftController');
 const { GuestController } = require('../presentation/http/controllers/GuestController');
 const { OrganizerController } = require('../presentation/http/controllers/OrganizerController');
 const { createAuthenticate } = require('../presentation/http/middlewares/authenticate');
@@ -46,6 +54,7 @@ function buildContainer({
   eventRepository = new FirestoreEventRepository(lazyDb),
   organizerRepository = new FirestoreOrganizerRepository(lazyDb),
   guestRepository = new FirestoreGuestRepository(lazyDb),
+  giftRepository = new FirestoreGiftRepository(lazyDb),
   verifyToken = firebaseVerifyToken,
   generateSlug = cryptoGenerateSlug,
   getFrontendUrl = () => process.env.FRONTEND_URL,
@@ -77,6 +86,13 @@ function buildContainer({
     getEventSummary: new GetEventSummary({ guestRepository, getEvent }),
   });
 
+  const giftController = new GiftController({
+    createGift: new CreateGift({ giftRepository, getEvent }),
+    listGifts: new ListGifts({ giftRepository, getEvent }),
+    updateGift: new UpdateGift({ giftRepository, getEvent }),
+    deleteGift: new DeleteGift({ giftRepository, getEvent }),
+  });
+
   const organizerController = new OrganizerController({
     createOrganizer: new CreateOrganizer({ organizerRepository }),
     getOrganizer: new GetOrganizer({ organizerRepository }),
@@ -87,6 +103,7 @@ function buildContainer({
     inviteController,
     publicInviteController,
     guestController,
+    giftController,
     organizerController,
     authenticate: createAuthenticate({ verifyToken }),
   };
