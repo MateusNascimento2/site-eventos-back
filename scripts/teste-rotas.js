@@ -217,8 +217,12 @@ async function executar() {
       const alheioGuests = await chamar('GET', `/events/${id}/guests`, { token: token2 });
       const alheioResumo = await chamar('GET', `/events/${id}/summary`, { token: token2 });
       const alheioPresentes = await chamar('GET', `/events/${id}/gifts`, { token: token2 });
+      const alheioPix = await chamar('PUT', `/events/${id}/pix`, {
+        token: token2,
+        corpo: { pixEnabled: false },
+      });
       verificar(
-        'outro organizador recebe 404 em GET, PUT, DELETE, convite, lista, resumo e presentes',
+        'outro organizador recebe 404 em GET, PUT, DELETE, convite, lista, resumo, presentes e Pix',
         [
           alheio,
           alheioPut,
@@ -227,6 +231,7 @@ async function executar() {
           alheioGuests,
           alheioResumo,
           alheioPresentes,
+          alheioPix,
         ].every((r) => r.status === 404),
       );
     } else {
@@ -274,6 +279,36 @@ async function executar() {
     verificar(
       'DELETE /events/:id/gifts/:giftId remove (204) e repetir devolve 404',
       presenteRemovido.status === 204 && presenteDeNovo.status === 404,
+    );
+
+    const pixInvalido = await chamar('PUT', `/events/${id}/pix`, {
+      token,
+      corpo: { pixEnabled: true },
+    });
+    verificar('PUT /events/:id/pix habilitando sem chave devolve 400', pixInvalido.status === 400);
+
+    const pixSalvo = await chamar('PUT', `/events/${id}/pix`, {
+      token,
+      corpo: { pixKey: 'casal@teste.com', whatsapp: '(21) 98765-4321', pixEnabled: true },
+    });
+    verificar(
+      'PUT /events/:id/pix salva a chave, o WhatsApp e habilita o Pix (200)',
+      pixSalvo.status === 200 &&
+        pixSalvo.corpo?.whatsapp === '21987654321' &&
+        pixSalvo.corpo?.pixEnabled === true,
+    );
+
+    const presentesPublicos = await chamar('GET', `/invites/${novoConvite.corpo?.slug}/gifts`);
+    verificar(
+      'GET /invites/:slug/gifts mostra o Pix habilitado, sem login (200)',
+      presentesPublicos.status === 200 && presentesPublicos.corpo?.pix?.key === 'casal@teste.com',
+    );
+
+    await chamar('PUT', `/events/${id}/pix`, { token, corpo: { pixEnabled: false } });
+    const semPix = await chamar('GET', `/invites/${novoConvite.corpo?.slug}/gifts`);
+    verificar(
+      'Pix desabilitado some do GET público',
+      semPix.status === 200 && semPix.corpo?.pix === null,
     );
 
     const desativado = await chamar('DELETE', `/events/${id}/invite`, { token });

@@ -12,6 +12,8 @@ const { RegenerateInvite } = require('../application/use-cases/RegenerateInvite'
 const { DisableInvite } = require('../application/use-cases/DisableInvite');
 const { GetPublicInvite } = require('../application/use-cases/GetPublicInvite');
 const { CreateRsvp } = require('../application/use-cases/CreateRsvp');
+const { UpdateEventPix } = require('../application/use-cases/UpdateEventPix');
+const { GetPublicGifts } = require('../application/use-cases/GetPublicGifts');
 const { CreateGift } = require('../application/use-cases/CreateGift');
 const { ListGifts } = require('../application/use-cases/ListGifts');
 const { UpdateGift } = require('../application/use-cases/UpdateGift');
@@ -66,6 +68,7 @@ function buildContainer({
     listEvents: new ListEvents({ eventRepository }),
     getEvent,
     updateEvent: new UpdateEvent({ eventRepository, getEvent }),
+    updateEventPix: new UpdateEventPix({ eventRepository, getEvent }),
     deleteEvent: new DeleteEvent({ eventRepository, getEvent }),
   });
 
@@ -78,6 +81,7 @@ function buildContainer({
 
   const publicInviteController = new PublicInviteController({
     getPublicInvite: new GetPublicInvite({ eventRepository }),
+    getPublicGifts: new GetPublicGifts({ eventRepository, giftRepository }),
     createRsvp: new CreateRsvp({ eventRepository, guestRepository }),
   });
 

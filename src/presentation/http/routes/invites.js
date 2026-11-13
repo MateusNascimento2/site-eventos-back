@@ -7,6 +7,7 @@ function createInviteRoutes({ publicInviteController, publicLimits }) {
   const limitarEscrita = createRateLimit(publicLimits.write);
 
   router.get('/:slug', limitarLeitura, publicInviteController.get);
+  router.get('/:slug/gifts', limitarLeitura, publicInviteController.gifts);
   router.post('/:slug/rsvp', limitarEscrita, publicInviteController.rsvp);
 
   return router;

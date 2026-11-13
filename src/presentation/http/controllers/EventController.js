@@ -3,11 +3,12 @@ function paraResposta(event) {
 }
 
 class EventController {
-  constructor({ createEvent, listEvents, getEvent, updateEvent, deleteEvent }) {
+  constructor({ createEvent, listEvents, getEvent, updateEvent, updateEventPix, deleteEvent }) {
     this.createEvent = createEvent;
     this.listEvents = listEvents;
     this.getEvent = getEvent;
     this.updateEvent = updateEvent;
+    this.updateEventPix = updateEventPix;
     this.deleteEvent = deleteEvent;
   }
 
@@ -41,6 +42,15 @@ class EventController {
 
   update = async (req, res) => {
     const event = await this.updateEvent.execute({
+      eventId: req.params.id,
+      organizerId: req.user.uid,
+      dados: req.body || {},
+    });
+    res.json(paraResposta(event));
+  };
+
+  updatePix = async (req, res) => {
+    const event = await this.updateEventPix.execute({
       eventId: req.params.id,
       organizerId: req.user.uid,
       dados: req.body || {},

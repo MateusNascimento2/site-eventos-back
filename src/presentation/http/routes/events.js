@@ -14,6 +14,7 @@ function createEventRoutes({
   router.get('/', eventController.list);
   router.get('/:id', eventController.getById);
   router.put('/:id', eventController.update);
+  router.put('/:id/pix', eventController.updatePix);
   router.delete('/:id', eventController.remove);
   router.get('/:id/guests', guestController.list);
   router.get('/:id/summary', guestController.summary);

@@ -1,6 +1,7 @@
 class PublicInviteController {
-  constructor({ getPublicInvite, createRsvp }) {
+  constructor({ getPublicInvite, getPublicGifts, createRsvp }) {
     this.getPublicInvite = getPublicInvite;
+    this.getPublicGifts = getPublicGifts;
     this.createRsvp = createRsvp;
   }
 
@@ -10,6 +11,14 @@ class PublicInviteController {
     // Sem cache, para o link desativado ou trocado parar de funcionar na hora
     res.set('Cache-Control', 'no-store');
     res.json(invite);
+  };
+
+  gifts = async (req, res) => {
+    const resultado = await this.getPublicGifts.execute({ slug: req.params.slug });
+
+    // Sem cache, para o Pix desabilitado sumir na hora
+    res.set('Cache-Control', 'no-store');
+    res.json(resultado);
   };
 
   rsvp = async (req, res) => {

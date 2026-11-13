@@ -1,8 +1,10 @@
 const { ValidationError } = require('../errors');
+const { TELEFONE_VALIDO, soDigitos } = require('../phone');
 
 const LAYOUT_PADRAO = 'basico';
 const TITULO_MAXIMO = 120;
 const DESCRICAO_MAXIMA = 1000;
+const PIX_MAXIMO = 140;
 
 function textoValido(valor) {
   return typeof valor === 'string' && valor.trim().length > 0;
@@ -41,6 +43,25 @@ class Event {
     }
     if (!textoValido(layout)) throw new ValidationError('layout deve ser um texto');
 
+    // Texto em branco limpa o campo
+    const chave = typeof pixKey === 'string' ? pixKey.trim() || null : pixKey;
+    const contato = typeof whatsapp === 'string' ? whatsapp.trim() || null : whatsapp;
+    if (chave !== null && (typeof chave !== 'string' || chave.length > PIX_MAXIMO)) {
+      throw new ValidationError(`pixKey deve ser um texto de até ${PIX_MAXIMO} caracteres`);
+    }
+    if (
+      contato !== null &&
+      (typeof contato !== 'string' || !TELEFONE_VALIDO.test(soDigitos(contato)))
+    ) {
+      throw new ValidationError('whatsapp inválido, informe DDD e número');
+    }
+    if (typeof pixEnabled !== 'boolean') {
+      throw new ValidationError('pixEnabled deve ser true ou false');
+    }
+    if (pixEnabled && (chave === null || contato === null)) {
+      throw new ValidationError('pixKey e whatsapp são obrigatórios para habilitar o Pix');
+    }
+
     this.id = id;
     this.organizerId = organizerId;
     this.title = title.trim();
@@ -49,8 +70,8 @@ class Event {
     this.description = description;
     this.layout = layout;
     this.slug = slug;
-    this.whatsapp = whatsapp;
-    this.pixKey = pixKey;
+    this.whatsapp = contato === null ? null : soDigitos(contato);
+    this.pixKey = chave;
     this.pixEnabled = pixEnabled;
     this.createdAt = createdAt;
   }

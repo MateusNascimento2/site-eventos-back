@@ -60,12 +60,13 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 
 ### Públicas
 
-| Método | Rota                  | Resposta                                                                                         |
-| ------ | --------------------- | ------------------------------------------------------------------------------------------------ |
-| GET    | `/`                   | `200 { "status": "API no ar" }`                                                                  |
-| GET    | `/health/firebase`    | `200` se o Firestore responde, `503` se não                                                      |
-| GET    | `/invites/:slug`      | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
-| POST   | `/invites/:slug/rsvp` | O convidado confirma ou recusa presença (`201`)                                                  |
+| Método | Rota                   | Resposta                                                                                         |
+| ------ | ---------------------- | ------------------------------------------------------------------------------------------------ |
+| GET    | `/`                    | `200 { "status": "API no ar" }`                                                                  |
+| GET    | `/health/firebase`     | `200` se o Firestore responde, `503` se não                                                      |
+| GET    | `/invites/:slug/gifts` | Presentes do evento e dados do Pix, quando habilitado (`404` como acima)                         |
+| GET    | `/invites/:slug`       | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
+| POST   | `/invites/:slug/rsvp`  | O convidado confirma ou recusa presença (`201`)                                                  |
 
 ### Organizador (protegidas)
 
@@ -95,6 +96,7 @@ Erros: `400` sem nome, `409 Organizador já cadastrado`, e `404 Organizador não
 | GET    | `/events`                       | Lista os eventos do organizador, ordenados por data | 200                            |
 | GET    | `/events/:id`                   | Detalhes de um evento                               | 200                            |
 | PUT    | `/events/:id`                   | Edita o evento (só os campos enviados)              | 200                            |
+| PUT    | `/events/:id/pix`               | Salva a chave Pix, o WhatsApp e habilita o Pix      | 200                            |
 | DELETE | `/events/:id`                   | Remove o evento, com convidados e presentes         | 204                            |
 | POST   | `/events/:id/invite`            | Gera o link do convite, ou devolve o atual          | 201 (novo) ou 200 (já existia) |
 | POST   | `/events/:id/invite/regenerate` | Gera um novo link; o antigo deixa de funcionar      | 200                            |
@@ -129,7 +131,7 @@ Resposta de um evento:
 }
 ```
 
-`slug` só muda pelas rotas de convite, e `whatsapp`, `pixKey` e `pixEnabled` não são alterados por estas rotas (entram na fase de presentes).
+`slug` só muda pelas rotas de convite, e `whatsapp`, `pixKey` e `pixEnabled` só mudam pela rota de Pix.
 
 Erros comuns:
 
@@ -213,6 +215,22 @@ Resposta de um presente:
 
 Cada evento aceita até 50 presentes (acima disso, `400`). O `PUT` sem nenhum campo editável devolve `400`. Evento de outro organizador ou inexistente devolve `404 Evento não encontrado`, e presente inexistente (ou já removido) devolve `404 Presente não encontrado`. Remover o evento apaga os presentes junto.
 
+### Pix e WhatsApp (protegida)
+
+`PUT /events/:id/pix` salva os dados para o convidado fazer o presente em dinheiro. Só os campos enviados mudam.
+
+| Campo        | Regra                                                                    |
+| ------------ | ------------------------------------------------------------------------ |
+| `pixKey`     | Texto de até 140 caracteres. Texto em branco apaga a chave               |
+| `whatsapp`   | Telefone brasileiro com DDD, salvo só com dígitos. Texto em branco apaga |
+| `pixEnabled` | `true` ou `false`. Só pode ser `true` com `pixKey` e `whatsapp` salvos   |
+
+```json
+{ "pixKey": "casal@email.com", "whatsapp": "(21) 98765-4321", "pixEnabled": true }
+```
+
+A resposta é o evento completo, como no `PUT /events/:id`. Sem nenhum desses campos no corpo o resultado é `400`, e outros campos do evento enviados aqui são ignorados. Para apagar a chave com o Pix habilitado, envie `"pixEnabled": false` junto.
+
 ### Convite público (sem login)
 
 `GET /invites/:slug` é a rota que a página do convite usa. Não precisa de token e devolve só o que o convidado pode ver:
@@ -229,6 +247,19 @@ Cada evento aceita até 50 presentes (acima disso, `400`). O `PUT` sem nenhum ca
 ```
 
 Não devolve `id`, `organizerId`, `createdAt` nem dados de Pix. Slug inexistente, de formato inválido, trocado ou desativado devolve `404 Convite não encontrado`. A resposta sai com `Cache-Control: no-store`, para o link desativado parar de funcionar na hora.
+
+### Presentes do convite (sem login)
+
+`GET /invites/:slug/gifts` mostra os presentes e o Pix para o convidado. Não precisa de token e sai com `Cache-Control: no-store`.
+
+```json
+{
+  "gifts": [{ "id": "Xk29...", "name": "Jogo de panelas", "description": "Inox" }],
+  "pix": { "key": "casal@email.com", "whatsapp": "21987654321" }
+}
+```
+
+Quando o organizador não habilitou o Pix, `pix` vem `null`. O QR code pode ser gerado no front a partir da chave, e o convidado envia o comprovante ao WhatsApp. O limite de 120 consultas por IP vale para essa rota também.
 
 ### Confirmação de presença (sem login)
 
