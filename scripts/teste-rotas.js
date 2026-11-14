@@ -289,7 +289,13 @@ async function executar() {
 
     const pixSalvo = await chamar('PUT', `/events/${id}/pix`, {
       token,
-      corpo: { pixKey: 'casal@teste.com', whatsapp: '(21) 98765-4321', pixEnabled: true },
+      corpo: {
+        pixKey: 'casal@teste.com',
+        pixName: 'Maria Silva',
+        pixCity: 'Rio de Janeiro',
+        whatsapp: '(21) 98765-4321',
+        pixEnabled: true,
+      },
     });
     verificar(
       'PUT /events/:id/pix salva a chave, o WhatsApp e habilita o Pix (200)',
@@ -300,8 +306,10 @@ async function executar() {
 
     const presentesPublicos = await chamar('GET', `/invites/${novoConvite.corpo?.slug}/gifts`);
     verificar(
-      'GET /invites/:slug/gifts mostra o Pix habilitado, sem login (200)',
-      presentesPublicos.status === 200 && presentesPublicos.corpo?.pix?.key === 'casal@teste.com',
+      'GET /invites/:slug/gifts mostra o Pix com copia e cola, sem login (200)',
+      presentesPublicos.status === 200 &&
+        presentesPublicos.corpo?.pix?.key === 'casal@teste.com' &&
+        /^000201.*6304[0-9A-F]{4}$/.test(presentesPublicos.corpo?.pix?.payload ?? ''),
     );
 
     await chamar('PUT', `/events/${id}/pix`, { token, corpo: { pixEnabled: false } });

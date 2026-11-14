@@ -1,3 +1,4 @@
+const { gerarPayloadPix } = require('../../domain/pix');
 const { findInviteEvent } = require('./findInviteEvent');
 
 class GetPublicGifts {
@@ -13,7 +14,18 @@ class GetPublicGifts {
     return {
       gifts: gifts.map((g) => ({ id: g.id, name: g.name, description: g.description })),
       // O Pix só aparece quando o organizador habilitou
-      pix: event.pixEnabled ? { key: event.pixKey, whatsapp: event.whatsapp } : null,
+      pix: event.pixEnabled
+        ? {
+            key: event.pixKey,
+            name: event.pixName,
+            whatsapp: event.whatsapp,
+            payload: gerarPayloadPix({
+              key: event.pixKey,
+              name: event.pixName,
+              city: event.pixCity,
+            }),
+          }
+        : null,
     };
   }
 }

@@ -1,7 +1,7 @@
 const { Event } = require('../../domain/entities/Event');
 const { ValidationError } = require('../../domain/errors');
 
-const CAMPOS_EDITAVEIS = ['pixKey', 'whatsapp', 'pixEnabled'];
+const CAMPOS_EDITAVEIS = ['pixKey', 'whatsapp', 'pixEnabled', 'pixName', 'pixCity'];
 
 class UpdateEventPix {
   constructor({ eventRepository, getEvent }) {
@@ -27,6 +27,8 @@ class UpdateEventPix {
       pixKey: atualizado.pixKey,
       whatsapp: atualizado.whatsapp,
       pixEnabled: atualizado.pixEnabled,
+      pixName: atualizado.pixName,
+      pixCity: atualizado.pixCity,
     });
   }
 }

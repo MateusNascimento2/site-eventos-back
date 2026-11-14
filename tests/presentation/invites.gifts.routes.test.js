@@ -30,6 +30,8 @@ const habilitarPix = (app) =>
   comToken(request(app).put('/events/evento-1/pix')).send({
     pixKey: 'casal@email.com',
     whatsapp: '21987654321',
+    pixName: 'Maria Silva',
+    pixCity: 'Rio de Janeiro',
     pixEnabled: true,
   });
 
@@ -66,7 +68,12 @@ describe('GET /invites/:slug/gifts (pública)', () => {
     await comToken(request(app).put('/events/evento-1/pix')).send({ pixEnabled: false });
     const desligado = await request(app).get(`/invites/${slug}/gifts`);
 
-    expect(ligado.body.pix).toEqual({ key: 'casal@email.com', whatsapp: '21987654321' });
+    expect(ligado.body.pix).toEqual({
+      key: 'casal@email.com',
+      name: 'Maria Silva',
+      whatsapp: '21987654321',
+      payload: expect.stringMatching(/^000201.*6304[0-9A-F]{4}$/),
+    });
     expect(desligado.body.pix).toBeNull();
     expect(JSON.stringify(desligado.body)).not.toContain('casal@email.com');
   });

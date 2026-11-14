@@ -1,13 +1,27 @@
 const { ValidationError } = require('../errors');
 const { TELEFONE_VALIDO, soDigitos } = require('../phone');
+const { normalizarChavePix, textoPix } = require('../pix');
 
 const LAYOUT_PADRAO = 'basico';
 const TITULO_MAXIMO = 120;
 const DESCRICAO_MAXIMA = 1000;
-const PIX_MAXIMO = 140;
+const NOME_PIX_MAXIMO = 25;
+const CIDADE_PIX_MAXIMA = 15;
 
 function textoValido(valor) {
   return typeof valor === 'string' && valor.trim().length > 0;
+}
+
+function emBrancoVira(valor) {
+  return typeof valor === 'string' ? valor.trim() || null : valor;
+}
+
+function validarTextoPix(valor, maximo, campo) {
+  if (valor === null) return;
+  if (typeof valor !== 'string' || valor.length > maximo) {
+    throw new ValidationError(`${campo} deve ser um texto de até ${maximo} caracteres`);
+  }
+  if (textoPix(valor) === '') throw new ValidationError(`${campo} deve ter letras ou números`);
 }
 
 function dataValida(valor) {
@@ -29,6 +43,8 @@ class Event {
     whatsapp = null,
     pixKey = null,
     pixEnabled = false,
+    pixName = null,
+    pixCity = null,
     createdAt = new Date().toISOString(),
   }) {
     if (!textoValido(organizerId)) throw new ValidationError('organizerId é obrigatório');
@@ -44,10 +60,17 @@ class Event {
     if (!textoValido(layout)) throw new ValidationError('layout deve ser um texto');
 
     // Texto em branco limpa o campo
-    const chave = typeof pixKey === 'string' ? pixKey.trim() || null : pixKey;
-    const contato = typeof whatsapp === 'string' ? whatsapp.trim() || null : whatsapp;
-    if (chave !== null && (typeof chave !== 'string' || chave.length > PIX_MAXIMO)) {
-      throw new ValidationError(`pixKey deve ser um texto de até ${PIX_MAXIMO} caracteres`);
+    const chave = emBrancoVira(pixKey);
+    const contato = emBrancoVira(whatsapp);
+    const nomePix = emBrancoVira(pixName);
+    const cidadePix = emBrancoVira(pixCity);
+
+    const chaveNormalizada =
+      chave === null || typeof chave !== 'string' ? null : normalizarChavePix(chave);
+    if (chave !== null && chaveNormalizada === null) {
+      throw new ValidationError(
+        'pixKey deve ser CPF, CNPJ, e-mail, telefone com +55 ou chave aleatória',
+      );
     }
     if (
       contato !== null &&
@@ -55,11 +78,15 @@ class Event {
     ) {
       throw new ValidationError('whatsapp inválido, informe DDD e número');
     }
+    validarTextoPix(nomePix, NOME_PIX_MAXIMO, 'pixName');
+    validarTextoPix(cidadePix, CIDADE_PIX_MAXIMA, 'pixCity');
     if (typeof pixEnabled !== 'boolean') {
       throw new ValidationError('pixEnabled deve ser true ou false');
     }
-    if (pixEnabled && (chave === null || contato === null)) {
-      throw new ValidationError('pixKey e whatsapp são obrigatórios para habilitar o Pix');
+    if (pixEnabled && [chave, contato, nomePix, cidadePix].includes(null)) {
+      throw new ValidationError(
+        'pixKey, whatsapp, pixName e pixCity são obrigatórios para habilitar o Pix',
+      );
     }
 
     this.id = id;
@@ -71,8 +98,10 @@ class Event {
     this.layout = layout;
     this.slug = slug;
     this.whatsapp = contato === null ? null : soDigitos(contato);
-    this.pixKey = chave;
+    this.pixKey = chaveNormalizada;
     this.pixEnabled = pixEnabled;
+    this.pixName = nomePix;
+    this.pixCity = cidadePix;
     this.createdAt = createdAt;
   }
 

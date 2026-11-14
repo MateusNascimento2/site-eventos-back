@@ -15,7 +15,13 @@ const verifyToken = async (token) => {
 
 const evento = { title: 'Casamento', date: '2026-12-01', location: 'Rio de Janeiro' };
 const comToken = (req, token = 'token-a') => req.set('Authorization', `Bearer ${token}`);
-const pix = { pixKey: 'casal@email.com', whatsapp: '(21) 98765-4321', pixEnabled: true };
+const pix = {
+  pixKey: 'casal@email.com',
+  whatsapp: '(21) 98765-4321',
+  pixName: 'Maria Silva',
+  pixCity: 'Rio de Janeiro',
+  pixEnabled: true,
+};
 
 async function criarApp() {
   const app = createApp({
@@ -49,6 +55,8 @@ describe('PUT /events/:id/pix', () => {
       pixKey: 'casal@email.com',
       whatsapp: '21987654321',
       pixEnabled: true,
+      pixName: 'Maria Silva',
+      pixCity: 'Rio de Janeiro',
       title: 'Casamento',
     });
   });
@@ -58,21 +66,21 @@ describe('PUT /events/:id/pix', () => {
     await salvarPix(app, pix);
 
     const desligado = await salvarPix(app, { pixEnabled: false });
-    const novaChave = await salvarPix(app, { pixKey: 'outra-chave' });
+    const novaChave = await salvarPix(app, { pixKey: 'outro@email.com' });
 
     expect(desligado.body).toMatchObject({ pixEnabled: false, pixKey: 'casal@email.com' });
-    expect(novaChave.body).toMatchObject({ pixKey: 'outra-chave', whatsapp: '21987654321' });
+    expect(novaChave.body).toMatchObject({ pixKey: 'outro@email.com', whatsapp: '21987654321' });
   });
 
   it('só habilita o Pix com chave e WhatsApp', async () => {
     const app = await criarApp();
 
     const semNada = await salvarPix(app, { pixEnabled: true });
-    const semWhatsapp = await salvarPix(app, { pixEnabled: true, pixKey: 'chave' });
+    const semWhatsapp = await salvarPix(app, { pixEnabled: true, pixKey: 'a@b.com' });
 
     expect(semNada.status).toBe(400);
     expect(semNada.body).toEqual({
-      error: 'pixKey e whatsapp são obrigatórios para habilitar o Pix',
+      error: 'pixKey, whatsapp, pixName e pixCity são obrigatórios para habilitar o Pix',
     });
     expect(semWhatsapp.status).toBe(400);
   });
@@ -95,6 +103,8 @@ describe('PUT /events/:id/pix', () => {
     const casos = [
       { whatsapp: '12345' },
       { pixKey: 'a'.repeat(141) },
+      { pixKey: 'chave-invalida' },
+      { pixName: 'a'.repeat(26) },
       { pixEnabled: 'sim' },
       { title: 'outro', slug: 'x', organizerId: 'uid-b' },
       {},

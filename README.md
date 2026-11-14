@@ -90,17 +90,17 @@ Erros: `400` sem nome, `409 Organizador já cadastrado`, e `404 Organizador não
 
 ### Eventos (protegidas)
 
-| Método | Rota                            | O que faz                                           | Sucesso                        |
-| ------ | ------------------------------- | --------------------------------------------------- | ------------------------------ |
-| POST   | `/events`                       | Cria um evento                                      | 201                            |
-| GET    | `/events`                       | Lista os eventos do organizador, ordenados por data | 200                            |
-| GET    | `/events/:id`                   | Detalhes de um evento                               | 200                            |
-| PUT    | `/events/:id`                   | Edita o evento (só os campos enviados)              | 200                            |
-| PUT    | `/events/:id/pix`               | Salva a chave Pix, o WhatsApp e habilita o Pix      | 200                            |
-| DELETE | `/events/:id`                   | Remove o evento, com convidados e presentes         | 204                            |
-| POST   | `/events/:id/invite`            | Gera o link do convite, ou devolve o atual          | 201 (novo) ou 200 (já existia) |
-| POST   | `/events/:id/invite/regenerate` | Gera um novo link; o antigo deixa de funcionar      | 200                            |
-| DELETE | `/events/:id/invite`            | Desativa o convite: o link deixa de funcionar       | 204                            |
+| Método | Rota                            | O que faz                                                         | Sucesso                        |
+| ------ | ------------------------------- | ----------------------------------------------------------------- | ------------------------------ |
+| POST   | `/events`                       | Cria um evento                                                    | 201                            |
+| GET    | `/events`                       | Lista os eventos do organizador, ordenados por data               | 200                            |
+| GET    | `/events/:id`                   | Detalhes de um evento                                             | 200                            |
+| PUT    | `/events/:id`                   | Edita o evento (só os campos enviados)                            | 200                            |
+| PUT    | `/events/:id/pix`               | Salva a chave Pix, o nome, a cidade e o WhatsApp e habilita o Pix | 200                            |
+| DELETE | `/events/:id`                   | Remove o evento, com convidados e presentes                       | 204                            |
+| POST   | `/events/:id/invite`            | Gera o link do convite, ou devolve o atual                        | 201 (novo) ou 200 (já existia) |
+| POST   | `/events/:id/invite/regenerate` | Gera um novo link; o antigo deixa de funcionar                    | 200                            |
+| DELETE | `/events/:id/invite`            | Desativa o convite: o link deixa de funcionar                     | 204                            |
 
 Campos do corpo em `POST` e `PUT`:
 
@@ -126,12 +126,14 @@ Resposta de um evento:
   "slug": null,
   "whatsapp": null,
   "pixKey": null,
+  "pixName": null,
+  "pixCity": null,
   "pixEnabled": false,
   "createdAt": "2026-10-28T22:00:00.000Z"
 }
 ```
 
-`slug` só muda pelas rotas de convite, e `whatsapp`, `pixKey` e `pixEnabled` só mudam pela rota de Pix.
+`slug` só muda pelas rotas de convite, e `whatsapp`, `pixKey`, `pixName`, `pixCity` e `pixEnabled` só mudam pela rota de Pix.
 
 Erros comuns:
 
@@ -219,14 +221,22 @@ Cada evento aceita até 50 presentes (acima disso, `400`). O `PUT` sem nenhum ca
 
 `PUT /events/:id/pix` salva os dados para o convidado fazer o presente em dinheiro. Só os campos enviados mudam.
 
-| Campo        | Regra                                                                    |
-| ------------ | ------------------------------------------------------------------------ |
-| `pixKey`     | Texto de até 140 caracteres. Texto em branco apaga a chave               |
-| `whatsapp`   | Telefone brasileiro com DDD, salvo só com dígitos. Texto em branco apaga |
-| `pixEnabled` | `true` ou `false`. Só pode ser `true` com `pixKey` e `whatsapp` salvos   |
+| Campo        | Regra                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| `pixKey`     | CPF, CNPJ, e-mail, telefone com `+55` ou chave aleatória (validada e salva sem máscara). Em branco apaga |
+| `pixName`    | Nome do recebedor, até 25 caracteres. Em branco apaga                                                    |
+| `pixCity`    | Cidade do recebedor, até 15 caracteres. Em branco apaga                                                  |
+| `whatsapp`   | Telefone brasileiro com DDD, salvo só com dígitos. Em branco apaga                                       |
+| `pixEnabled` | `true` ou `false`. Só pode ser `true` com chave, nome, cidade e WhatsApp salvos                          |
 
 ```json
-{ "pixKey": "casal@email.com", "whatsapp": "(21) 98765-4321", "pixEnabled": true }
+{
+  "pixKey": "casal@email.com",
+  "pixName": "Maria Silva",
+  "pixCity": "Rio de Janeiro",
+  "whatsapp": "(21) 98765-4321",
+  "pixEnabled": true
+}
 ```
 
 A resposta é o evento completo, como no `PUT /events/:id`. Sem nenhum desses campos no corpo o resultado é `400`, e outros campos do evento enviados aqui são ignorados. Para apagar a chave com o Pix habilitado, envie `"pixEnabled": false` junto.
@@ -255,11 +265,16 @@ Não devolve `id`, `organizerId`, `createdAt` nem dados de Pix. Slug inexistente
 ```json
 {
   "gifts": [{ "id": "Xk29...", "name": "Jogo de panelas", "description": "Inox" }],
-  "pix": { "key": "casal@email.com", "whatsapp": "21987654321" }
+  "pix": {
+    "key": "casal@email.com",
+    "name": "Maria Silva",
+    "whatsapp": "21987654321",
+    "payload": "00020126...6304ABCD"
+  }
 }
 ```
 
-Quando o organizador não habilitou o Pix, `pix` vem `null`. O QR code pode ser gerado no front a partir da chave, e o convidado envia o comprovante ao WhatsApp. O limite de 120 consultas por IP vale para essa rota também.
+Quando o organizador não habilitou o Pix, `pix` vem `null`. O `payload` é o Pix copia e cola (BR Code estático, com CRC16) pronto: o front mostra o texto com um botão de copiar e gera o QR code a partir dele, sem valor definido (o convidado digita no app do banco). O convidado envia o comprovante ao WhatsApp. O limite de 120 consultas por IP vale para essa rota também.
 
 ### Confirmação de presença (sem login)
 
