@@ -22,6 +22,13 @@ const { ListGuests } = require('../application/use-cases/ListGuests');
 const { GetEventSummary } = require('../application/use-cases/GetEventSummary');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
+const { ListAllOrganizers } = require('../application/use-cases/ListAllOrganizers');
+const { ListAllEvents } = require('../application/use-cases/ListAllEvents');
+const { GetAdminSummary } = require('../application/use-cases/GetAdminSummary');
+const { SetOrganizerDisabled } = require('../application/use-cases/SetOrganizerDisabled');
+const { AdminDisableInvite } = require('../application/use-cases/AdminDisableInvite');
+const { AdminDeleteEvent } = require('../application/use-cases/AdminDeleteEvent');
+const { ListAuditLogs } = require('../application/use-cases/ListAuditLogs');
 const {
   FirestoreEventRepository,
 } = require('../infrastructure/repositories/FirestoreEventRepository');
@@ -34,6 +41,12 @@ const {
 const {
   FirestoreOrganizerRepository,
 } = require('../infrastructure/repositories/FirestoreOrganizerRepository');
+const {
+  FirestoreAuditLogRepository,
+} = require('../infrastructure/repositories/FirestoreAuditLogRepository');
+const {
+  setUserDisabled: firebaseSetUserDisabled,
+} = require('../infrastructure/firebase/userAccess');
 const { generateSlug: cryptoGenerateSlug } = require('../infrastructure/security/generateSlug');
 const { verifyToken: firebaseVerifyToken } = require('../infrastructure/firebase/tokenVerifier');
 const { EventController } = require('../presentation/http/controllers/EventController');
@@ -44,7 +57,9 @@ const {
 const { GiftController } = require('../presentation/http/controllers/GiftController');
 const { GuestController } = require('../presentation/http/controllers/GuestController');
 const { OrganizerController } = require('../presentation/http/controllers/OrganizerController');
+const { AdminController } = require('../presentation/http/controllers/AdminController');
 const { createAuthenticate } = require('../presentation/http/middlewares/authenticate');
+const { requireAdmin } = require('../presentation/http/middlewares/requireAdmin');
 
 // Só carrega o Firebase no primeiro uso, para a API subir mesmo com o .env errado
 const lazyDb = {
@@ -57,6 +72,8 @@ function buildContainer({
   organizerRepository = new FirestoreOrganizerRepository(lazyDb),
   guestRepository = new FirestoreGuestRepository(lazyDb),
   giftRepository = new FirestoreGiftRepository(lazyDb),
+  auditLogRepository = new FirestoreAuditLogRepository(lazyDb),
+  setUserDisabled = firebaseSetUserDisabled,
   verifyToken = firebaseVerifyToken,
   generateSlug = cryptoGenerateSlug,
   getFrontendUrl = () => process.env.FRONTEND_URL,
@@ -102,6 +119,20 @@ function buildContainer({
     getOrganizer: new GetOrganizer({ organizerRepository }),
   });
 
+  const adminController = new AdminController({
+    listAllOrganizers: new ListAllOrganizers({ organizerRepository }),
+    listAllEvents: new ListAllEvents({ eventRepository }),
+    getAdminSummary: new GetAdminSummary({ organizerRepository, eventRepository }),
+    setOrganizerDisabled: new SetOrganizerDisabled({
+      organizerRepository,
+      auditLogRepository,
+      setUserDisabled,
+    }),
+    adminDisableInvite: new AdminDisableInvite({ eventRepository, auditLogRepository }),
+    adminDeleteEvent: new AdminDeleteEvent({ eventRepository, auditLogRepository }),
+    listAuditLogs: new ListAuditLogs({ auditLogRepository }),
+  });
+
   return {
     eventController,
     inviteController,
@@ -109,7 +140,9 @@ function buildContainer({
     guestController,
     giftController,
     organizerController,
+    adminController,
     authenticate: createAuthenticate({ verifyToken }),
+    requireAdmin,
   };
 }
 

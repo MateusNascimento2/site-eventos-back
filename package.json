@@ -12,7 +12,8 @@
     "test:conexao": "node scripts/teste-conexao.js",
     "test:fumaca": "node scripts/teste-fumaca.js",
     "test:repositorio": "node scripts/teste-repositorio.js",
-    "test:rotas": "node scripts/teste-rotas.js"
+    "test:rotas": "node scripts/teste-rotas.js",
+    "admin": "node scripts/definir-admin.js"
   },
   "repository": {
     "type": "git",

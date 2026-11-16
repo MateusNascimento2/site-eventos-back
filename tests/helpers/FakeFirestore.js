@@ -56,6 +56,25 @@ class FakeFirestore {
 
     return {
       doc: (id) => criarDoc(id || `doc-${++banco.contador}`),
+      limit: (maximo) => ({
+        async get() {
+          const docs = todos().slice(0, maximo);
+          return { docs, empty: docs.length === 0 };
+        },
+      }),
+      orderBy: (campo, sentido) => ({
+        limit: (maximo) => ({
+          async get() {
+            const fator = sentido === 'desc' ? -1 : 1;
+            const docs = todos()
+              .sort(
+                (a, b) => fator * String(a.data()[campo]).localeCompare(String(b.data()[campo])),
+              )
+              .slice(0, maximo);
+            return { docs, empty: docs.length === 0 };
+          },
+        }),
+      }),
       async get() {
         const docs = todos();
         return { docs, empty: docs.length === 0 };

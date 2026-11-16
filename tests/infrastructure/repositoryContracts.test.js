@@ -2,6 +2,7 @@ const { EventRepository } = require('../../src/domain/repositories/EventReposito
 const { GuestRepository } = require('../../src/domain/repositories/GuestRepository');
 const { GiftRepository } = require('../../src/domain/repositories/GiftRepository');
 const { OrganizerRepository } = require('../../src/domain/repositories/OrganizerRepository');
+const { AuditLogRepository } = require('../../src/domain/repositories/AuditLogRepository');
 const {
   FirestoreEventRepository,
 } = require('../../src/infrastructure/repositories/FirestoreEventRepository');
@@ -15,6 +16,10 @@ const {
   FirestoreOrganizerRepository,
 } = require('../../src/infrastructure/repositories/FirestoreOrganizerRepository');
 
+const {
+  FirestoreAuditLogRepository,
+} = require('../../src/infrastructure/repositories/FirestoreAuditLogRepository');
+
 const metodos = (classe) =>
   Object.getOwnPropertyNames(classe.prototype).filter((nome) => nome !== 'constructor');
 
@@ -23,6 +28,7 @@ describe.each([
   ['FirestoreGuestRepository', GuestRepository, FirestoreGuestRepository],
   ['FirestoreGiftRepository', GiftRepository, FirestoreGiftRepository],
   ['FirestoreOrganizerRepository', OrganizerRepository, FirestoreOrganizerRepository],
+  ['FirestoreAuditLogRepository', AuditLogRepository, FirestoreAuditLogRepository],
 ])('%s', (nome, contrato, implementacao) => {
   it('implementa todos os métodos do contrato', () => {
     const faltando = metodos(contrato).filter((metodo) => !metodos(implementacao).includes(metodo));

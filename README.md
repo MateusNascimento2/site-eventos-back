@@ -33,16 +33,17 @@ O servidor não inicia se alguma variável do Firebase estiver ausente. **Nunca*
 
 ## Scripts
 
-| Comando                    | O que faz                                  |
-| -------------------------- | ------------------------------------------ |
-| `npm run dev`              | Servidor com reinício automático (nodemon) |
-| `npm start`                | Servidor em modo produção                  |
-| `npm test`                 | Testes (Jest + Supertest)                  |
-| `npm run lint`             | Análise estática (ESLint)                  |
-| `npm run format`           | Formatação (Prettier)                      |
-| `npm run test:conexao`     | Verifica a conexão com o Firestore         |
-| `npm run test:fumaca`      | Teste de fumaça da API                     |
-| `npm run test:repositorio` | Testa o repositório no Firestore real      |
+| Comando                    | O que faz                                       |
+| -------------------------- | ----------------------------------------------- |
+| `npm run dev`              | Servidor com reinício automático (nodemon)      |
+| `npm start`                | Servidor em modo produção                       |
+| `npm test`                 | Testes (Jest + Supertest)                       |
+| `npm run lint`             | Análise estática (ESLint)                       |
+| `npm run format`           | Formatação (Prettier)                           |
+| `npm run test:conexao`     | Verifica a conexão com o Firestore              |
+| `npm run test:fumaca`      | Teste de fumaça da API                          |
+| `npm run test:repositorio` | Testa o repositório no Firestore real           |
+| `npm run admin -- email`   | Torna o e-mail administrador (`--remover` tira) |
 
 ## Rotas
 
@@ -87,6 +88,23 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 ```
 
 Erros: `400` sem nome, `409 Organizador já cadastrado`, e `404 Organizador não encontrado` no `GET /organizers/me` se o perfil ainda não foi criado.
+
+### Administrador (protegidas)
+
+Todas as rotas de `/admin` exigem token de um usuário com o claim `admin: true`. Sem o claim, a resposta é `403 Acesso restrito a administradores`. Para virar administrador, rode `npm run admin -- email@exemplo.com` (com o `.env` configurado) e entre de novo no sistema para o token novo valer. `npm run admin -- email@exemplo.com --remover` tira o acesso.
+
+| Método | Rota                            | O que faz                                               | Sucesso |
+| ------ | ------------------------------- | ------------------------------------------------------- | ------- |
+| GET    | `/admin/summary`                | Totais: organizadores, eventos, convites ativos e Pix   | 200     |
+| GET    | `/admin/organizers`             | Todos os organizadores, do mais novo para o mais antigo | 200     |
+| GET    | `/admin/events`                 | Todos os eventos, sem Pix, WhatsApp nem descrição       | 200     |
+| POST   | `/admin/organizers/:id/disable` | Bloqueia o login do organizador e derruba as sessões    | 200     |
+| POST   | `/admin/organizers/:id/enable`  | Libera o login de novo                                  | 200     |
+| DELETE | `/admin/events/:id/invite`      | Desativa o convite de qualquer evento                   | 204     |
+| DELETE | `/admin/events/:id`             | Remove qualquer evento, com convidados e presentes      | 204     |
+| GET    | `/admin/audit-logs`             | Últimas 100 ações de administrador                      | 200     |
+
+As listagens trazem até 500 itens e saem sem cache. O administrador não pode desativar a própria conta (`400`). Organizador ou evento inexistente devolve `404`. Cada ação gera um registro na coleção `auditLogs` com a ação, o administrador (uid e e-mail), o alvo e a data. O organizador desativado aparece com `"disabled": true` e não consegue mais usar a API, porque o token passa a ser checado contra o Firebase Auth a cada requisição.
 
 ### Eventos (protegidas)
 
@@ -274,7 +292,7 @@ Não devolve `id`, `organizerId`, `createdAt` nem dados de Pix. Slug inexistente
 }
 ```
 
-Quando o organizador não habilitou o Pix, `pix` vem `null`. O `payload` é o Pix copia e cola (BR Code estático, com CRC16) pronto: o front mostra o texto com um botão de copiar e gera o QR code a partir dele, sem valor definido (o convidado digita no app do banco). O convidado envia o comprovante ao WhatsApp. O limite de 120 consultas por IP vale para essa rota também.
+Quando o organizador não habilitou o Pix, `pix` vem `null`. O `payload` é o Pix copia e cola (BR Code estático, com CRC16) pronto: o front mostra o texto com um botão de copiar e gera o QR code a partir dele, sem valor definido (o convidado digita no app do banco). O QR code deve ser gerado a partir do `payload`, nunca da `key`, senão o app do banco não reconhece. O convidado envia o comprovante ao WhatsApp. O limite de 120 consultas por IP vale para essa rota também.
 
 ### Confirmação de presença (sem login)
 
@@ -316,6 +334,7 @@ Erros: `400` para dados inválidos, `409` para e-mail repetido, e `404 Convite n
 - JSON malformado devolve `400 JSON inválido`.
 - As duas rotas públicas têm limite por IP em janelas de 15 minutos: `GET /invites/:slug` aceita 120 requisições e `POST /invites/:slug/rsvp` aceita 20. Passando disso a resposta é `429 Muitas requisições, tente novamente em alguns minutos`, com o header `Retry-After` em segundos. A contagem fica na memória de cada instância da Vercel, então ela reduz abuso simples, mas não é um bloqueio rígido.
 - O header `X-Powered-By` fica desligado.
+- O token é checado contra o Firebase Auth a cada requisição, então conta desativada ou sessão revogada perde o acesso na hora.
 
 ### Exemplo
 

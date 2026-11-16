@@ -3,6 +3,7 @@ const { createHealthRouter } = require('./health');
 const { createEventRoutes } = require('./events');
 const { createInviteRoutes } = require('./invites');
 const { createOrganizerRoutes } = require('./organizers');
+const { createAdminRoutes } = require('./admin');
 
 function createRoutes({
   checkDatabase,
@@ -12,7 +13,9 @@ function createRoutes({
   giftController,
   publicInviteController,
   organizerController,
+  adminController,
   authenticate,
+  requireAdmin,
   publicLimits,
 }) {
   const router = Router();
@@ -34,6 +37,7 @@ function createRoutes({
   );
   router.use('/invites', createInviteRoutes({ publicInviteController, publicLimits }));
   router.use('/organizers', createOrganizerRoutes({ organizerController, authenticate }));
+  router.use('/admin', createAdminRoutes({ adminController, authenticate, requireAdmin }));
 
   return router;
 }

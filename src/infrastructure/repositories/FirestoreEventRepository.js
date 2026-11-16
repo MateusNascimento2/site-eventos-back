@@ -2,6 +2,7 @@ const { Event } = require('../../domain/entities/Event');
 const { EventRepository } = require('../../domain/repositories/EventRepository');
 
 const COLECAO = 'events';
+const LIMITE_ADMIN = 500;
 
 function paraEvento(doc) {
   return new Event({ id: doc.id, ...doc.data() });
@@ -36,6 +37,11 @@ class FirestoreEventRepository extends EventRepository {
       .get();
 
     return snapshot.docs.map(paraEvento).sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  async findAll() {
+    const snapshot = await this.db.collection(COLECAO).limit(LIMITE_ADMIN).get();
+    return snapshot.docs.map(paraEvento);
   }
 
   async update(id, dados) {

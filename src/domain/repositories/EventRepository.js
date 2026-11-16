@@ -19,6 +19,11 @@ class EventRepository {
     console.log('findByOrganizer');
   }
 
+  // findAll() -> Event[]
+  async findAll() {
+    console.log('findAll');
+  }
+
   // update(id, dados) -> Event
   async update() {
     console.log('update');

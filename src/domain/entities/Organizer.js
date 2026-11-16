@@ -3,7 +3,7 @@ const { ValidationError } = require('../errors');
 const NOME_MAXIMO = 120;
 
 class Organizer {
-  constructor({ id, name, email, createdAt = new Date().toISOString() }) {
+  constructor({ id, name, email, disabled = false, createdAt = new Date().toISOString() }) {
     if (typeof id !== 'string' || !id.trim()) throw new ValidationError('id é obrigatório');
     if (typeof name !== 'string' || !name.trim()) throw new ValidationError('name é obrigatório');
     if (name.trim().length > NOME_MAXIMO) {
@@ -16,6 +16,7 @@ class Organizer {
     this.id = id;
     this.name = name.trim();
     this.email = email.trim();
+    this.disabled = disabled === true;
     this.createdAt = createdAt;
   }
 

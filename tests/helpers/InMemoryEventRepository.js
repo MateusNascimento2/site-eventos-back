@@ -26,6 +26,10 @@ class InMemoryEventRepository extends EventRepository {
     return this.events.filter((evento) => evento.organizerId === organizerId);
   }
 
+  async findAll() {
+    return [...this.events];
+  }
+
   async update(id, dados) {
     const indice = this.events.findIndex((evento) => evento.id === id);
     this.events[indice] = new Event({ ...this.events[indice], ...dados });
