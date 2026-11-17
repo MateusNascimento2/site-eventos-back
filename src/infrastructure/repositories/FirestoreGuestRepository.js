@@ -30,6 +30,16 @@ class FirestoreGuestRepository extends GuestRepository {
     return guest;
   }
 
+  async findById(eventId, guestId) {
+    const doc = await this.guests(eventId).doc(guestId).get();
+    return doc.exists ? paraConvidado(doc) : null;
+  }
+
+  async update(eventId, guestId, dados) {
+    await this.guests(eventId).doc(guestId).update(dados);
+    return this.findById(eventId, guestId);
+  }
+
   async listByEvent(eventId) {
     const snapshot = await this.guests(eventId).get();
     return snapshot.docs.map(paraConvidado).sort((a, b) => a.createdAt.localeCompare(b.createdAt));

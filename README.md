@@ -177,10 +177,11 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 
 ### Convidados do evento (protegidas)
 
-| Método | Rota                  | O que faz                                                   | Resposta |
-| ------ | --------------------- | ----------------------------------------------------------- | -------- |
-| GET    | `/events/:id/guests`  | Lista quem respondeu o convite, do mais antigo ao mais novo | 200      |
-| GET    | `/events/:id/summary` | Totais do evento para o painel                              | 200      |
+| Método | Rota                          | O que faz                                                   | Resposta |
+| ------ | ----------------------------- | ----------------------------------------------------------- | -------- |
+| GET    | `/events/:id/guests`          | Lista quem respondeu o convite, do mais antigo ao mais novo | 200      |
+| PUT    | `/events/:id/guests/:guestId` | Corrige os dados de um convidado                            | 200      |
+| GET    | `/events/:id/summary`         | Totais do evento para o painel                              | 200      |
 
 `GET /events/:id/guests` aceita o filtro `?confirmed=true` (quem vai) ou `?confirmed=false` (quem recusou). Qualquer outro valor devolve `400 confirmed deve ser true ou false`. Cada item da lista:
 
@@ -196,6 +197,12 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 }
 ```
 
+`PUT /events/:id/guests/:guestId` aceita `name`, `phone`, `confirmed` e `plusOne`. Só os campos enviados mudam, e a resposta é o convidado completo, no mesmo formato da lista. O `email` não muda, porque ele identifica o convidado: se vier no corpo, é ignorado, e um corpo sem nenhum campo editável devolve `400`. Quem passa para `confirmed: false` perde o acompanhante junto, e enviar `confirmed: false` com `plusOne: true` devolve `400`. Convidado inexistente ou com `guestId` de formato inválido devolve `404 Convidado não encontrado`.
+
+```json
+{ "name": "Ana Maria", "phone": "(21) 91234-5678", "confirmed": true, "plusOne": false }
+```
+
 `GET /events/:id/summary`:
 
 ```json
@@ -204,7 +211,7 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 
 `total` é quem respondeu, `declined` é quem disse que não vai, `plusOnes` conta os acompanhantes e `attending` é `confirmed + plusOnes`. Convidado que ainda não respondeu não aparece, porque a API só conhece quem respondeu o convite.
 
-As duas rotas só funcionam para o dono do evento (`404 Evento não encontrado` para evento de outro organizador, inexistente ou com `id` inválido) e saem com `Cache-Control: no-store`, porque trazem e-mail e telefone.
+As rotas de convidados só funcionam para o dono do evento (`404 Evento não encontrado` para evento de outro organizador, inexistente ou com `id` inválido) e saem com `Cache-Control: no-store`, porque trazem e-mail e telefone.
 
 ### Presentes (protegidas)
 

@@ -84,6 +84,38 @@ describe('FirestoreGuestRepository', () => {
     expect(await repositorio.listByEvent('sem-convidados')).toEqual([]);
   });
 
+  it('findById devolve o convidado do evento ou null', async () => {
+    const repositorio = new FirestoreGuestRepository(new FakeFirestore());
+    await repositorio.add('evento-1', convidado());
+
+    const achado = await repositorio.findById('evento-1', 'ana-souza');
+
+    expect(achado).toBeInstanceOf(Guest);
+    expect(achado).toMatchObject({ id: 'ana-souza', name: 'Ana Souza' });
+    expect(await repositorio.findById('evento-2', 'ana-souza')).toBeNull();
+    expect(await repositorio.findById('evento-1', 'nao-existe')).toBeNull();
+  });
+
+  it('update muda só os campos enviados e mantém e-mail e data', async () => {
+    const db = new FakeFirestore();
+    const repositorio = new FirestoreGuestRepository(db);
+    await repositorio.add('evento-1', convidado());
+
+    const atualizado = await repositorio.update('evento-1', 'ana-souza', {
+      name: 'Ana Maria',
+      confirmed: false,
+    });
+
+    expect(atualizado).toBeInstanceOf(Guest);
+    expect(atualizado).toMatchObject({
+      name: 'Ana Maria',
+      confirmed: false,
+      email: 'ana@teste.com',
+      phone: '21987654321',
+    });
+    expect(db.dados['events/evento-1/guests']['ana-souza']).not.toHaveProperty('id');
+  });
+
   it('remover o evento apaga também os convidados dele', async () => {
     const db = new FakeFirestore();
     const eventos = new FirestoreEventRepository(db);

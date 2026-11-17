@@ -168,6 +168,27 @@ async function executar() {
         convidados.corpo[0].email === emailConvidado,
     );
 
+    const guestId = convidados.corpo?.[0]?.id;
+    const convidadoEditado = await chamar('PUT', `/events/${id}/guests/${guestId}`, {
+      token,
+      corpo: { name: 'Convidado Editado' },
+    });
+    verificar(
+      'PUT /events/:id/guests/:guestId edita o nome e mantém e-mail e acompanhante (200)',
+      convidadoEditado.status === 200 &&
+        convidadoEditado.corpo?.name === 'Convidado Editado' &&
+        convidadoEditado.corpo?.plusOne === true &&
+        convidadoEditado.corpo?.email === emailConvidado,
+    );
+    const convidadoInexistente = await chamar('PUT', `/events/${id}/guests/nao-existe`, {
+      token,
+      corpo: { name: 'X' },
+    });
+    verificar(
+      'PUT /events/:id/guests/:guestId com convidado inexistente devolve 404',
+      convidadoInexistente.status === 404,
+    );
+
     const soQuemNaoVai = await chamar('GET', `/events/${id}/guests?confirmed=false`, { token });
     verificar(
       'GET /events/:id/guests?confirmed=false não traz quem confirmou',

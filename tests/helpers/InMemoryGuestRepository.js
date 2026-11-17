@@ -1,3 +1,4 @@
+const { Guest } = require('../../src/domain/entities/Guest');
 const { GuestRepository } = require('../../src/domain/repositories/GuestRepository');
 const { ConflictError } = require('../../src/domain/errors');
 
@@ -14,6 +15,17 @@ class InMemoryGuestRepository extends GuestRepository {
     }
     this.guests.push({ eventId, guest });
     return guest;
+  }
+
+  async findById(eventId, guestId) {
+    const item = this.guests.find((g) => g.eventId === eventId && g.guest.id === guestId);
+    return item ? item.guest : null;
+  }
+
+  async update(eventId, guestId, dados) {
+    const item = this.guests.find((g) => g.eventId === eventId && g.guest.id === guestId);
+    item.guest = new Guest({ ...item.guest, ...dados });
+    return item.guest;
   }
 
   async listByEvent(eventId) {
