@@ -181,6 +181,7 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 | ------ | ----------------------------- | ----------------------------------------------------------- | -------- |
 | GET    | `/events/:id/guests`          | Lista quem respondeu o convite, do mais antigo ao mais novo | 200      |
 | PUT    | `/events/:id/guests/:guestId` | Corrige os dados de um convidado                            | 200      |
+| DELETE | `/events/:id/guests/:guestId` | Remove um convidado da lista                                | 204      |
 | GET    | `/events/:id/summary`         | Totais do evento para o painel                              | 200      |
 
 `GET /events/:id/guests` aceita o filtro `?confirmed=true` (quem vai) ou `?confirmed=false` (quem recusou). Qualquer outro valor devolve `400 confirmed deve ser true ou false`. Cada item da lista:
@@ -202,6 +203,8 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 ```json
 { "name": "Ana Maria", "phone": "(21) 91234-5678", "confirmed": true, "plusOne": false }
 ```
+
+`DELETE /events/:id/guests/:guestId` remove o convidado e devolve `204` sem corpo. O resumo do evento deixa de contá-lo, junto com o acompanhante, e o mesmo e-mail pode confirmar presença de novo. Repetir a chamada, ou usar um `guestId` inexistente ou de formato inválido, devolve `404 Convidado não encontrado`. Depois da remoção os dados do convidado (nome, e-mail e telefone) não ficam guardados em nenhum outro lugar da API.
 
 `GET /events/:id/summary`:
 

@@ -7,9 +7,10 @@ function paraResposta(guest) {
 }
 
 class GuestController {
-  constructor({ listGuests, getEventSummary, updateGuest }) {
+  constructor({ listGuests, getEventSummary, updateGuest, deleteGuest }) {
     this.listGuests = listGuests;
     this.updateGuest = updateGuest;
+    this.deleteGuest = deleteGuest;
     this.getEventSummary = getEventSummary;
   }
 
@@ -39,6 +40,16 @@ class GuestController {
 
     res.set('Cache-Control', 'no-store');
     res.json(paraResposta(guest));
+  };
+
+  remove = async (req, res) => {
+    await this.deleteGuest.execute({
+      eventId: req.params.id,
+      organizerId: req.user.uid,
+      guestId: req.params.guestId,
+    });
+
+    res.status(204).end();
   };
 
   summary = async (req, res) => {

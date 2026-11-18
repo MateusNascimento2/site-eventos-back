@@ -21,6 +21,7 @@ const { DeleteGift } = require('../application/use-cases/DeleteGift');
 const { ListGuests } = require('../application/use-cases/ListGuests');
 const { GetEventSummary } = require('../application/use-cases/GetEventSummary');
 const { UpdateGuest } = require('../application/use-cases/UpdateGuest');
+const { DeleteGuest } = require('../application/use-cases/DeleteGuest');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
 const { ListAllOrganizers } = require('../application/use-cases/ListAllOrganizers');
@@ -107,6 +108,7 @@ function buildContainer({
     listGuests: new ListGuests({ guestRepository, getEvent }),
     getEventSummary: new GetEventSummary({ guestRepository, getEvent }),
     updateGuest: new UpdateGuest({ guestRepository, getEvent }),
+    deleteGuest: new DeleteGuest({ guestRepository, getEvent }),
   });
 
   const giftController = new GiftController({

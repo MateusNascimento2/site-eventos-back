@@ -204,6 +204,30 @@ async function executar() {
         resumo.corpo?.attending === 2,
     );
 
+    const emailRemovido = `removido${Date.now()}@teste.com`;
+    await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
+      corpo: {
+        name: 'Convidado Removido',
+        email: emailRemovido,
+        phone: '21988887777',
+        confirmed: true,
+      },
+    });
+    const comRemovido = await chamar('GET', `/events/${id}/guests`, { token });
+    const idRemovido = comRemovido.corpo?.find((g) => g.email === emailRemovido)?.id;
+    const convidadoRemovido = await chamar('DELETE', `/events/${id}/guests/${idRemovido}`, {
+      token,
+    });
+    const removidoDeNovo = await chamar('DELETE', `/events/${id}/guests/${idRemovido}`, { token });
+    const semRemovido = await chamar('GET', `/events/${id}/guests`, { token });
+    verificar(
+      'DELETE /events/:id/guests/:guestId remove só o convidado (204) e repetir devolve 404',
+      convidadoRemovido.status === 204 &&
+        removidoDeNovo.status === 404 &&
+        semRemovido.corpo?.length === 1 &&
+        semRemovido.corpo[0].email === emailConvidado,
+    );
+
     const rsvpInvalido = await chamar('POST', `/invites/${novoConvite.corpo?.slug}/rsvp`, {
       corpo: { name: 'Sem confirmação', email: emailConvidado, phone: '21999998888' },
     });

@@ -28,6 +28,10 @@ class InMemoryGuestRepository extends GuestRepository {
     return item.guest;
   }
 
+  async delete(eventId, guestId) {
+    this.guests = this.guests.filter((g) => !(g.eventId === eventId && g.guest.id === guestId));
+  }
+
   async listByEvent(eventId) {
     return this.guests.filter((g) => g.eventId === eventId).map((g) => g.guest);
   }

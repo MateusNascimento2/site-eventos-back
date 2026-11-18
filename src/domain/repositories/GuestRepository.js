@@ -14,6 +14,11 @@ class GuestRepository {
     console.log('update');
   }
 
+  // delete(eventId, guestId)
+  async delete() {
+    console.log('delete');
+  }
+
   // listByEvent(eventId) -> Guest[]
   async listByEvent() {
     console.log('listByEvent');

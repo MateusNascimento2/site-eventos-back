@@ -18,6 +18,7 @@ function createEventRoutes({
   router.delete('/:id', eventController.remove);
   router.get('/:id/guests', guestController.list);
   router.put('/:id/guests/:guestId', guestController.update);
+  router.delete('/:id/guests/:guestId', guestController.remove);
   router.get('/:id/summary', guestController.summary);
   router.get('/:id/gifts', giftController.list);
   router.post('/:id/gifts', giftController.create);
