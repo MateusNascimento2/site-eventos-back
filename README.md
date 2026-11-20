@@ -75,6 +75,7 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 | ------ | ---------------- | --------------------------------- | ------- |
 | POST   | `/organizers`    | Cria o perfil de quem está logado | 201     |
 | GET    | `/organizers/me` | Devolve o perfil de quem logou    | 200     |
+| PUT    | `/organizers/me` | Edita o nome do perfil            | 200     |
 
 `POST /organizers` recebe `{ "name": "Ana Souza" }` (obrigatório, até 120 caracteres). O `id` e o `email` vêm do token. Devolve:
 
@@ -87,7 +88,9 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 }
 ```
 
-Erros: `400` sem nome, `409 Organizador já cadastrado`, e `404 Organizador não encontrado` no `GET /organizers/me` se o perfil ainda não foi criado.
+Erros: `400` sem nome, `409 Organizador já cadastrado`, e `404 Organizador não encontrado` no `GET` e no `PUT /organizers/me` se o perfil ainda não foi criado.
+
+`PUT /organizers/me` aceita só `name` (obrigatório se enviado, até 120 caracteres, sem espaços nas pontas) e devolve o perfil completo. `email`, `disabled`, `id` e `createdAt` enviados no corpo são ignorados, então o organizador não consegue trocar o e-mail do perfil nem se reativar. Um corpo sem `name` devolve `400 Informe ao menos um campo para atualizar`.
 
 ### Administrador (protegidas)
 

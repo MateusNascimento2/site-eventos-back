@@ -3,9 +3,10 @@ function paraResposta(organizer) {
 }
 
 class OrganizerController {
-  constructor({ createOrganizer, getOrganizer }) {
+  constructor({ createOrganizer, getOrganizer, updateOrganizer }) {
     this.createOrganizer = createOrganizer;
     this.getOrganizer = getOrganizer;
+    this.updateOrganizer = updateOrganizer;
   }
 
   create = async (req, res) => {
@@ -22,6 +23,14 @@ class OrganizerController {
 
   me = async (req, res) => {
     const organizer = await this.getOrganizer.execute({ uid: req.user.uid });
+    res.json(paraResposta(organizer));
+  };
+
+  updateMe = async (req, res) => {
+    const organizer = await this.updateOrganizer.execute({
+      uid: req.user.uid,
+      dados: req.body || {},
+    });
     res.json(paraResposta(organizer));
   };
 }

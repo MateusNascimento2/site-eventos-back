@@ -6,6 +6,7 @@ function createOrganizerRoutes({ organizerController, authenticate }) {
   router.use(authenticate);
   router.post('/', organizerController.create);
   router.get('/me', organizerController.me);
+  router.put('/me', organizerController.updateMe);
 
   return router;
 }

@@ -76,6 +76,22 @@ async function executar() {
       eu.status === 200 && Boolean(eu.corpo?.id),
     );
 
+    const nomeAntigo = eu.corpo?.name;
+    const renomeado = await chamar('PUT', '/organizers/me', {
+      token,
+      corpo: { name: 'Nome Editado', email: 'outro@teste.com', disabled: true },
+    });
+    verificar(
+      'PUT /organizers/me muda o nome e ignora e-mail e bloqueio (200)',
+      renomeado.status === 200 &&
+        renomeado.corpo?.name === 'Nome Editado' &&
+        renomeado.corpo?.email === eu.corpo?.email &&
+        renomeado.corpo?.disabled === false,
+    );
+    const renomeadoVazio = await chamar('PUT', '/organizers/me', { token, corpo: {} });
+    verificar('PUT /organizers/me sem campo editável devolve 400', renomeadoVazio.status === 400);
+    await chamar('PUT', '/organizers/me', { token, corpo: { name: nomeAntigo } });
+
     const invalido = await chamar('POST', '/events', { token, corpo: { title: '' } });
     verificar('POST /events com dados inválidos devolve 400', invalido.status === 400);
 

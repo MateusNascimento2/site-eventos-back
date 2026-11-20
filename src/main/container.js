@@ -24,6 +24,7 @@ const { UpdateGuest } = require('../application/use-cases/UpdateGuest');
 const { DeleteGuest } = require('../application/use-cases/DeleteGuest');
 const { CreateOrganizer } = require('../application/use-cases/CreateOrganizer');
 const { GetOrganizer } = require('../application/use-cases/GetOrganizer');
+const { UpdateOrganizer } = require('../application/use-cases/UpdateOrganizer');
 const { ListAllOrganizers } = require('../application/use-cases/ListAllOrganizers');
 const { ListAllEvents } = require('../application/use-cases/ListAllEvents');
 const { GetAdminSummary } = require('../application/use-cases/GetAdminSummary');
@@ -121,6 +122,7 @@ function buildContainer({
   const organizerController = new OrganizerController({
     createOrganizer: new CreateOrganizer({ organizerRepository }),
     getOrganizer: new GetOrganizer({ organizerRepository }),
+    updateOrganizer: new UpdateOrganizer({ organizerRepository }),
   });
 
   const adminController = new AdminController({
