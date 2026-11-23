@@ -65,6 +65,7 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 | ------ | ---------------------- | ------------------------------------------------------------------------------------------------ |
 | GET    | `/`                    | `200 { "status": "API no ar" }`                                                                  |
 | GET    | `/health/firebase`     | `200` se o Firestore responde, `503` se não                                                      |
+| GET    | `/layouts`             | Lista os layouts disponíveis para o convite, com cache de 1 hora                                 |
 | GET    | `/invites/:slug/gifts` | Presentes do evento e dados do Pix, quando habilitado (`404` como acima)                         |
 | GET    | `/invites/:slug`       | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
 | POST   | `/invites/:slug/rsvp`  | O convidado confirma ou recusa presença (`201`)                                                  |
@@ -131,7 +132,21 @@ Campos do corpo em `POST` e `PUT`:
 | `date`        | Obrigatório no `POST`, formato `AAAA-MM-DD` e data real |
 | `location`    | Obrigatório no `POST`                                   |
 | `description` | Opcional, texto de até 1000 caracteres                  |
-| `layout`      | Opcional, texto (padrão `basico`)                       |
+| `layout`      | Opcional, um `id` de `GET /layouts` (padrão `basico`)   |
+
+`GET /layouts` devolve a lista que o front usa para montar a escolha de tema, sem login:
+
+```json
+[
+  { "id": "basico", "name": "Básico" },
+  { "id": "praia", "name": "Praia" },
+  { "id": "luz", "name": "Luz" },
+  { "id": "infantil", "name": "Infantil" },
+  { "id": "corporativo", "name": "Corporativo" }
+]
+```
+
+Layout fora da lista devolve `400 layout inválido, use um de: basico, praia, luz, infantil, corporativo`, na criação e na edição. Evento antigo que tenha um layout que não existe mais é lido com `basico`.
 
 Resposta de um evento:
 
@@ -187,7 +202,16 @@ A `url` é montada com a variável `FRONTEND_URL` e o caminho `/convite/<slug>`.
 | DELETE | `/events/:id/guests/:guestId` | Remove um convidado da lista                                | 204      |
 | GET    | `/events/:id/summary`         | Totais do evento para o painel                              | 200      |
 
-`GET /events/:id/guests` aceita o filtro `?confirmed=true` (quem vai) ou `?confirmed=false` (quem recusou). Qualquer outro valor devolve `400 confirmed deve ser true ou false`. Cada item da lista:
+`GET /events/:id/guests` aceita estes parâmetros, que podem ser combinados:
+
+| Parâmetro   | O que faz                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| `confirmed` | `true` (quem vai) ou `false` (quem recusou). Outro valor devolve `400`                           |
+| `search`    | Texto de até 100 caracteres, procurado no nome e no e-mail, sem diferenciar maiúsculas e acentos |
+| `limit`     | Itens por página, de 1 a 100. Sem `limit`, a lista vem inteira                                   |
+| `page`      | Página, a partir de 1 (padrão 1). Só vale junto com `limit`                                      |
+
+O corpo continua sendo a lista de convidados. O total fica nos headers `X-Total-Count` (itens depois dos filtros), `X-Page` e `X-Total-Pages`, liberados para o navegador por CORS. Parâmetro inválido devolve `400`. Cada item da lista:
 
 ```json
 {

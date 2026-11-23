@@ -178,3 +178,20 @@ describe('Event (limites)', () => {
     expect(() => new Event({ ...eventoValido, layout: { x: 1 } })).toThrow(ValidationError);
   });
 });
+
+describe('Event (layout)', () => {
+  it('aceita só os layouts da lista', () => {
+    for (const layout of ['basico', 'praia', 'luz', 'infantil', 'corporativo']) {
+      expect(new Event({ ...eventoValido, layout }).layout).toBe(layout);
+    }
+    for (const layout of ['elegante', 'Praia', ' praia', '']) {
+      expect(() => new Event({ ...eventoValido, layout })).toThrow(ValidationError);
+    }
+  });
+
+  it('informa os layouts válidos na mensagem de erro', () => {
+    expect(() => new Event({ ...eventoValido, layout: 'elegante' })).toThrow(
+      'layout inválido, use um de: basico, praia, luz, infantil, corporativo',
+    );
+  });
+});

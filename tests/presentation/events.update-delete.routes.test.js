@@ -39,14 +39,14 @@ describe('PUT /events/:id', () => {
 
     const res = await comToken(request(app).put('/events/evento-1')).send({
       title: 'Casamento da Ana',
-      layout: 'elegante',
+      layout: 'praia',
     });
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       id: 'evento-1',
       title: 'Casamento da Ana',
-      layout: 'elegante',
+      layout: 'praia',
       date: '2026-12-01',
       location: 'Rio de Janeiro',
     });

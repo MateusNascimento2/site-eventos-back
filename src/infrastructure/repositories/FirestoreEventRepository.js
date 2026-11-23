@@ -1,11 +1,13 @@
 const { Event } = require('../../domain/entities/Event');
+const { layoutOuPadrao } = require('../../domain/layouts');
 const { EventRepository } = require('../../domain/repositories/EventRepository');
 
 const COLECAO = 'events';
 const LIMITE_ADMIN = 500;
 
 function paraEvento(doc) {
-  return new Event({ id: doc.id, ...doc.data() });
+  const dados = doc.data();
+  return new Event({ id: doc.id, ...dados, layout: layoutOuPadrao(dados.layout) });
 }
 
 class FirestoreEventRepository extends EventRepository {

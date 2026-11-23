@@ -1,8 +1,8 @@
 const { ValidationError } = require('../errors');
 const { TELEFONE_VALIDO, soDigitos } = require('../phone');
 const { normalizarChavePix, textoPix } = require('../pix');
+const { LAYOUTS, LAYOUT_PADRAO, layoutExiste } = require('../layouts');
 
-const LAYOUT_PADRAO = 'basico';
 const TITULO_MAXIMO = 120;
 const DESCRICAO_MAXIMA = 1000;
 const NOME_PIX_MAXIMO = 25;
@@ -58,6 +58,11 @@ class Event {
       throw new ValidationError(`description deve ter no máximo ${DESCRICAO_MAXIMA} caracteres`);
     }
     if (!textoValido(layout)) throw new ValidationError('layout deve ser um texto');
+    if (!layoutExiste(layout)) {
+      throw new ValidationError(
+        `layout inválido, use um de: ${LAYOUTS.map((item) => item.id).join(', ')}`,
+      );
+    }
 
     // Texto em branco limpa o campo
     const chave = emBrancoVira(pixKey);

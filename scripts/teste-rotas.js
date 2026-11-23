@@ -92,8 +92,20 @@ async function executar() {
     verificar('PUT /organizers/me sem campo editável devolve 400', renomeadoVazio.status === 400);
     await chamar('PUT', '/organizers/me', { token, corpo: { name: nomeAntigo } });
 
+    const layouts = await chamar('GET', '/layouts');
+    verificar(
+      'GET /layouts lista os layouts sem login (200)',
+      layouts.status === 200 && layouts.corpo?.some((l) => l.id === 'basico'),
+    );
+
     const invalido = await chamar('POST', '/events', { token, corpo: { title: '' } });
     verificar('POST /events com dados inválidos devolve 400', invalido.status === 400);
+
+    const layoutInvalido = await chamar('POST', '/events', {
+      token,
+      corpo: { title: 'X', date: '2026-12-01', location: 'Rio', layout: 'nao-existe' },
+    });
+    verificar('POST /events com layout fora da lista devolve 400', layoutInvalido.status === 400);
 
     const criado = await chamar('POST', '/events', {
       token,
@@ -204,6 +216,16 @@ async function executar() {
       'PUT /events/:id/guests/:guestId com convidado inexistente devolve 404',
       convidadoInexistente.status === 404,
     );
+
+    const buscaConvidado = await chamar('GET', `/events/${id}/guests?search=teste&limit=1`, {
+      token,
+    });
+    verificar(
+      'GET /events/:id/guests?search=...&limit=1 filtra e pagina (200)',
+      buscaConvidado.status === 200 && buscaConvidado.corpo?.length === 1,
+    );
+    const limiteInvalido = await chamar('GET', `/events/${id}/guests?limit=0`, { token });
+    verificar('GET /events/:id/guests?limit=0 devolve 400', limiteInvalido.status === 400);
 
     const soQuemNaoVai = await chamar('GET', `/events/${id}/guests?confirmed=false`, { token });
     verificar(

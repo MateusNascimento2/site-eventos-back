@@ -27,6 +27,19 @@ describe('FirestoreEventRepository', () => {
     expect(db.dados.events['doc-1'].title).toBe('Casamento');
   });
 
+  it('evento antigo com layout que não existe volta para o padrão ao ser lido', async () => {
+    const db = new FakeFirestore();
+    const repositorio = new FirestoreEventRepository(db);
+    await repositorio.create(novoEvento({ layout: 'praia' }));
+    db.dados.events['doc-1'].layout = 'elegante';
+
+    const achado = await repositorio.findById('doc-1');
+    const todos = await repositorio.findAll();
+
+    expect(achado.layout).toBe('basico');
+    expect(todos[0].layout).toBe('basico');
+  });
+
   it('findById devolve o evento ou null', async () => {
     const repositorio = new FirestoreEventRepository(new FakeFirestore());
     const criado = await repositorio.create(novoEvento());
