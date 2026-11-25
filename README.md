@@ -376,6 +376,7 @@ Erros: `400` para dados inválidos, `409` para e-mail repetido, e `404 Convite n
 - Corpo da requisição de até 16 KB. Acima disso a resposta é `413 Corpo da requisição grande demais`.
 - JSON malformado devolve `400 JSON inválido`.
 - As duas rotas públicas têm limite por IP em janelas de 15 minutos: `GET /invites/:slug` aceita 120 requisições e `POST /invites/:slug/rsvp` aceita 20. Passando disso a resposta é `429 Muitas requisições, tente novamente em alguns minutos`, com o header `Retry-After` em segundos. A contagem fica na memória de cada instância da Vercel, então ela reduz abuso simples, mas não é um bloqueio rígido.
+- As rotas protegidas também têm limite, em janelas de 15 minutos: 600 requisições por IP (contadas antes de validar o token, para frear quem testa tokens), e por usuário 300 leituras (`GET`) e 100 escritas (`POST`, `PUT`, `DELETE`). As rotas `/admin` têm ainda um limite próprio de 150 requisições por administrador, que só conta quem passou na checagem de admin. Passando de qualquer limite a resposta é a mesma `429` com `Retry-After`. As rotas públicas e o `/docs` não entram nessa contagem.
 - O header `X-Powered-By` fica desligado.
 - O token é checado contra o Firebase Auth a cada requisição, então conta desativada ou sessão revogada perde o acesso na hora.
 

@@ -41,7 +41,7 @@ function operacao({
   ok,
   erros = [],
 }) {
-  const codigosErro = publica ? erros : [401, ...erros];
+  const codigosErro = publica ? erros : [401, ...erros, 429];
   const respostas = { ...ok };
   for (const codigo of codigosErro) {
     respostas[codigo] = { $ref: `#/components/responses/${ERROS[codigo]}` };

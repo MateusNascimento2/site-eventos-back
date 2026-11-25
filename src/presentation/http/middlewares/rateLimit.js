@@ -1,5 +1,5 @@
-// Limita as requisições por IP em uma janela de tempo (a contagem fica na memória da instância)
-function createRateLimit({ max, windowMs, now = Date.now }) {
+// Limita as requisições por chave (padrão: IP) em uma janela de tempo (a contagem fica na memória da instância)
+function createRateLimit({ max, windowMs, now = Date.now, key = (req) => req.ip }) {
   const acessos = new Map();
 
   return (req, res, next) => {
@@ -7,15 +7,16 @@ function createRateLimit({ max, windowMs, now = Date.now }) {
 
     // Limpa os IPs vencidos para a memória não crescer
     if (acessos.size > 10000) {
-      for (const [ip, acesso] of acessos) {
-        if (acesso.fim <= agora) acessos.delete(ip);
+      for (const [chaveAntiga, acesso] of acessos) {
+        if (acesso.fim <= agora) acessos.delete(chaveAntiga);
       }
     }
 
-    let acesso = acessos.get(req.ip);
+    const chave = key(req);
+    let acesso = acessos.get(chave);
     if (!acesso || acesso.fim <= agora) {
       acesso = { total: 0, fim: agora + windowMs };
-      acessos.set(req.ip, acesso);
+      acessos.set(chave, acesso);
     }
     acesso.total += 1;
 

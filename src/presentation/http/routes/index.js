@@ -6,6 +6,7 @@ const { createOrganizerRoutes } = require('./organizers');
 const { createAdminRoutes } = require('./admin');
 const { createLayoutRoutes } = require('./layouts');
 const { createDocsRoutes } = require('./docs');
+const { createRateLimit } = require('../middlewares/rateLimit');
 
 function createRoutes({
   checkDatabase,
@@ -19,8 +20,18 @@ function createRoutes({
   authenticate,
   requireAdmin,
   publicLimits,
+  protectedLimits,
 }) {
   const router = Router();
+
+  const porUsuario = (req) => req.user.uid;
+  const limitarIp = createRateLimit(protectedLimits.ip);
+  const limitarLeitura = createRateLimit({ ...protectedLimits.read, key: porUsuario });
+  const limitarEscrita = createRateLimit({ ...protectedLimits.write, key: porUsuario });
+  const limitarAdmin = createRateLimit({ ...protectedLimits.admin, key: porUsuario });
+  const limitarUsuario = (req, res, next) =>
+    (req.method === 'GET' ? limitarLeitura : limitarEscrita)(req, res, next);
+  const autenticarComLimite = [limitarIp, authenticate, limitarUsuario];
 
   router.get('/', (req, res) => {
     res.json({ status: 'API no ar' });
@@ -34,14 +45,24 @@ function createRoutes({
       inviteController,
       guestController,
       giftController,
-      authenticate,
+      authenticate: autenticarComLimite,
     }),
   );
   router.use('/invites', createInviteRoutes({ publicInviteController, publicLimits }));
   router.use('/layouts', createLayoutRoutes({ publicLimits }));
   router.use('/docs', createDocsRoutes({ publicLimits }));
-  router.use('/organizers', createOrganizerRoutes({ organizerController, authenticate }));
-  router.use('/admin', createAdminRoutes({ adminController, authenticate, requireAdmin }));
+  router.use(
+    '/organizers',
+    createOrganizerRoutes({ organizerController, authenticate: autenticarComLimite }),
+  );
+  router.use(
+    '/admin',
+    createAdminRoutes({
+      adminController,
+      authenticate: autenticarComLimite,
+      requireAdmin: [requireAdmin, limitarAdmin],
+    }),
+  );
 
   return router;
 }
