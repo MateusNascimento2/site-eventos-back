@@ -1,18 +1,18 @@
 class OrganizerRepository {
   async create() {
-    console.log('create');
+    throw new Error('OrganizerRepository.create não implementado');
   }
 
   async findById() {
-    console.log('findById');
+    throw new Error('OrganizerRepository.findById não implementado');
   }
 
   async findAll() {
-    console.log('findAll');
+    throw new Error('OrganizerRepository.findAll não implementado');
   }
 
   async update() {
-    console.log('update');
+    throw new Error('OrganizerRepository.update não implementado');
   }
 }
 

@@ -1,12 +1,12 @@
 class AuditLogRepository {
   // create(log) -> AuditLog com id
   async create() {
-    console.log('create');
+    throw new Error('AuditLogRepository.create não implementado');
   }
 
   // findRecent(limite) -> AuditLog[] do mais novo para o mais antigo
   async findRecent() {
-    console.log('findRecent');
+    throw new Error('AuditLogRepository.findRecent não implementado');
   }
 }
 

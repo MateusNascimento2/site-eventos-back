@@ -151,17 +151,16 @@ describe('Gift', () => {
 });
 
 describe('Contratos dos repositórios', () => {
-  it('cada método apenas registra a chamada no console', async () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-
-    await new EventRepository().create();
-    await new GuestRepository().listByEvent();
-    await new GiftRepository().delete();
-    await new GiftRepository().findById();
-
-    expect(logSpy.mock.calls).toEqual([['create'], ['listByEvent'], ['delete'], ['findById']]);
-
-    logSpy.mockRestore();
+  it('método não implementado lança erro com o nome da classe e do método', async () => {
+    await expect(new EventRepository().create()).rejects.toThrow(
+      'EventRepository.create não implementado',
+    );
+    await expect(new GuestRepository().listByEvent()).rejects.toThrow(
+      'GuestRepository.listByEvent não implementado',
+    );
+    await expect(new GiftRepository().delete()).rejects.toThrow(
+      'GiftRepository.delete não implementado',
+    );
   });
 });
 

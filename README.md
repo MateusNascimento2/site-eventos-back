@@ -49,6 +49,10 @@ O servidor não inicia se alguma variável do Firebase estiver ausente. **Nunca*
 
 Todas respondem JSON. Erros vêm no formato `{ "error": "mensagem" }`.
 
+### Documentação (OpenAPI)
+
+A documentação fica em `/docs` (por exemplo `http://localhost:3000/docs`). Para testar rotas protegidas, clique em **Authorize** e cole o idToken do Firebase. A especificação está em `src/presentation/http/openapi/openapiDocument.js`: ao criar ou mudar uma rota, atualize esse arquivo. O teste `tests/presentation/docs.routes.test.js` falha se a documentação citar uma rota que não existe.
+
 ### Autenticação
 
 O login e o cadastro são feitos pelo front com o Firebase Authentication. As rotas protegidas exigem o cabeçalho:
@@ -66,6 +70,8 @@ Sem o cabeçalho a resposta é `401 Token não informado`, e com token inválido
 | GET    | `/`                    | `200 { "status": "API no ar" }`                                                                  |
 | GET    | `/health/firebase`     | `200` se o Firestore responde, `503` se não                                                      |
 | GET    | `/layouts`             | Lista os layouts disponíveis para o convite, com cache de 1 hora                                 |
+| GET    | `/docs`                | Documentação interativa da API (Swagger UI)                                                      |
+| GET    | `/docs/openapi.json`   | Especificação OpenAPI 3 da API, para importar no Postman ou gerar tipos no front                 |
 | GET    | `/invites/:slug/gifts` | Presentes do evento e dados do Pix, quando habilitado (`404` como acima)                         |
 | GET    | `/invites/:slug`       | Dados públicos do evento para a página do convite (`404` se o link não existe ou foi desativado) |
 | POST   | `/invites/:slug/rsvp`  | O convidado confirma ou recusa presença (`201`)                                                  |
@@ -398,4 +404,6 @@ Regra de dependência: `presentation` e `infrastructure` dependem de `applicatio
 ## Convenções
 
 - Todo caso de uso novo recebe seus repositórios pelo construtor e é ligado em `src/main/container.js`.
+- Rota nova ou alterada também entra na documentação OpenAPI.
+- Contratos de repositório lançam erro nos métodos não implementados; a implementação sobrescreve todos.
 - Antes do commit: `npm run lint` e `npm test`.

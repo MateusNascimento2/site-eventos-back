@@ -1,27 +1,27 @@
 class GuestRepository {
   // add(eventId, guest) -> Guest com id
   async add() {
-    console.log('add');
+    throw new Error('GuestRepository.add não implementado');
   }
 
   // findById(eventId, guestId) -> Guest ou null
   async findById() {
-    console.log('findById');
+    throw new Error('GuestRepository.findById não implementado');
   }
 
   // update(eventId, guestId, dados) -> Guest
   async update() {
-    console.log('update');
+    throw new Error('GuestRepository.update não implementado');
   }
 
   // delete(eventId, guestId)
   async delete() {
-    console.log('delete');
+    throw new Error('GuestRepository.delete não implementado');
   }
 
   // listByEvent(eventId) -> Guest[]
   async listByEvent() {
-    console.log('listByEvent');
+    throw new Error('GuestRepository.listByEvent não implementado');
   }
 }
 

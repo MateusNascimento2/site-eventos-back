@@ -98,6 +98,12 @@ async function executar() {
       layouts.status === 200 && layouts.corpo?.some((l) => l.id === 'basico'),
     );
 
+    const docs = await chamar('GET', '/docs/openapi.json');
+    verificar(
+      'GET /docs/openapi.json devolve a especificação sem login (200)',
+      docs.status === 200 && docs.corpo?.openapi === '3.0.3' && !!docs.corpo?.paths?.['/events'],
+    );
+
     const invalido = await chamar('POST', '/events', { token, corpo: { title: '' } });
     verificar('POST /events com dados inválidos devolve 400', invalido.status === 400);
 

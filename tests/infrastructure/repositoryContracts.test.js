@@ -35,4 +35,12 @@ describe.each([
 
     expect(faltando).toEqual([]);
   });
+
+  it('todo método do contrato lança erro se não for implementado', async () => {
+    const instancia = new contrato();
+
+    for (const metodo of metodos(contrato)) {
+      await expect(instancia[metodo]()).rejects.toThrow(`${contrato.name}.${metodo}`);
+    }
+  });
 });

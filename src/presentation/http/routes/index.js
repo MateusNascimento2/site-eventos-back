@@ -5,6 +5,7 @@ const { createInviteRoutes } = require('./invites');
 const { createOrganizerRoutes } = require('./organizers');
 const { createAdminRoutes } = require('./admin');
 const { createLayoutRoutes } = require('./layouts');
+const { createDocsRoutes } = require('./docs');
 
 function createRoutes({
   checkDatabase,
@@ -38,6 +39,7 @@ function createRoutes({
   );
   router.use('/invites', createInviteRoutes({ publicInviteController, publicLimits }));
   router.use('/layouts', createLayoutRoutes({ publicLimits }));
+  router.use('/docs', createDocsRoutes({ publicLimits }));
   router.use('/organizers', createOrganizerRoutes({ organizerController, authenticate }));
   router.use('/admin', createAdminRoutes({ adminController, authenticate, requireAdmin }));
 
