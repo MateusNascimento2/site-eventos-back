@@ -18,14 +18,15 @@ A API sobe em `http://localhost:3000`.
 
 ## Variáveis de ambiente
 
-| Variável                | Descrição                                                     |
-| ----------------------- | ------------------------------------------------------------- |
-| `PORT`                  | Porta do servidor (padrão 3000)                               |
-| `FIREBASE_PROJECT_ID`   | ID do projeto no Firebase                                     |
-| `FIREBASE_CLIENT_EMAIL` | E-mail da conta de serviço                                    |
-| `FIREBASE_PRIVATE_KEY`  | Chave privada, entre aspas duplas, com `\n` literais          |
-| `FRONTEND_URL`          | URL do front (opcional), usada para montar o link do convite  |
-| `CORS_ORIGINS`          | Outras origens do navegador, separadas por vírgula (opcional) |
+| Variável                | Descrição                                                                   |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `PORT`                  | Porta do servidor (padrão 3000)                                             |
+| `FIREBASE_PROJECT_ID`   | ID do projeto no Firebase                                                   |
+| `FIREBASE_CLIENT_EMAIL` | E-mail da conta de serviço                                                  |
+| `FIREBASE_PRIVATE_KEY`  | Chave privada, entre aspas duplas, com `\n` literais                        |
+| `FRONTEND_URL`          | URL do front (opcional), usada para montar o link do convite                |
+| `CORS_ORIGINS`          | Outras origens do navegador, separadas por vírgula (opcional)               |
+| `RATE_LIMIT_STORE`      | `memory` guarda a contagem dos limites na memória; sem ela, usa o Firestore |
 
 Com `FRONTEND_URL` ou `CORS_ORIGINS` preenchidos, só essas origens podem chamar a API pelo navegador (exemplo de `CORS_ORIGINS`: `http://localhost:5173`). Sem nenhuma das duas, qualquer origem é aceita, o que serve só para desenvolvimento. Postman e curl não são afetados.
 
@@ -375,8 +376,11 @@ Erros: `400` para dados inválidos, `409` para e-mail repetido, e `404 Convite n
 
 - Corpo da requisição de até 16 KB. Acima disso a resposta é `413 Corpo da requisição grande demais`.
 - JSON malformado devolve `400 JSON inválido`.
-- As duas rotas públicas têm limite por IP em janelas de 15 minutos: `GET /invites/:slug` aceita 120 requisições e `POST /invites/:slug/rsvp` aceita 20. Passando disso a resposta é `429 Muitas requisições, tente novamente em alguns minutos`, com o header `Retry-After` em segundos. A contagem fica na memória de cada instância da Vercel, então ela reduz abuso simples, mas não é um bloqueio rígido.
+- As duas rotas públicas têm limite por IP em janelas de 15 minutos: `GET /invites/:slug` aceita 120 requisições e `POST /invites/:slug/rsvp` aceita 20. Passando disso a resposta é `429 Muitas requisições, tente novamente em alguns minutos`, com o header `Retry-After` em segundos.
 - As rotas protegidas também têm limite, em janelas de 15 minutos: 600 requisições por IP (contadas antes de validar o token, para frear quem testa tokens), e por usuário 300 leituras (`GET`) e 100 escritas (`POST`, `PUT`, `DELETE`). As rotas `/admin` têm ainda um limite próprio de 150 requisições por administrador, que só conta quem passou na checagem de admin. Passando de qualquer limite a resposta é a mesma `429` com `Retry-After`. As rotas públicas e o `/docs` não entram nessa contagem.
+- A contagem dos limites fica no Firestore, na coleção `rateLimits`, e vale para todas as instâncias da Vercel. O id do documento é o hash da chave, então o IP não fica gravado. Cada requisição dessas rotas faz uma leitura e, enquanto está dentro do limite, uma escrita; passando do limite só lê. Se o Firestore falhar, o limite continua na memória da instância e a requisição não é derrubada. `/layouts` e `/docs` contam só na memória. Com `RATE_LIMIT_STORE=memory` tudo conta na memória, o que serve para desenvolvimento.
+- Para o Firestore apagar sozinho os contadores vencidos, ative o TTL uma vez: `gcloud firestore fields ttls update expiraEm --collection-group=rateLimits --enable-ttl --project=<id-do-projeto>`.
+- Os headers de segurança vêm do `helmet`: `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options`, `Referrer-Policy` e `Content-Security-Policy`, entre outros. `Cross-Origin-Resource-Policy` fica em `cross-origin` para o front poder ler a API, e a página `/docs` tem uma política própria que libera só o CDN do Swagger UI.
 - O header `X-Powered-By` fica desligado.
 - O token é checado contra o Firebase Auth a cada requisição, então conta desativada ou sessão revogada perde o acesso na hora.
 

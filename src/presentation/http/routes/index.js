@@ -21,14 +21,34 @@ function createRoutes({
   requireAdmin,
   publicLimits,
   protectedLimits,
+  rateLimitStore,
 }) {
   const router = Router();
 
   const porUsuario = (req) => req.user.uid;
-  const limitarIp = createRateLimit(protectedLimits.ip);
-  const limitarLeitura = createRateLimit({ ...protectedLimits.read, key: porUsuario });
-  const limitarEscrita = createRateLimit({ ...protectedLimits.write, key: porUsuario });
-  const limitarAdmin = createRateLimit({ ...protectedLimits.admin, key: porUsuario });
+  const limitarIp = createRateLimit({
+    ...protectedLimits.ip,
+    name: 'protegidas-ip',
+    store: rateLimitStore,
+  });
+  const limitarLeitura = createRateLimit({
+    ...protectedLimits.read,
+    name: 'usuario-leitura',
+    key: porUsuario,
+    store: rateLimitStore,
+  });
+  const limitarEscrita = createRateLimit({
+    ...protectedLimits.write,
+    name: 'usuario-escrita',
+    key: porUsuario,
+    store: rateLimitStore,
+  });
+  const limitarAdmin = createRateLimit({
+    ...protectedLimits.admin,
+    name: 'admin',
+    key: porUsuario,
+    store: rateLimitStore,
+  });
   const limitarUsuario = (req, res, next) =>
     (req.method === 'GET' ? limitarLeitura : limitarEscrita)(req, res, next);
   const autenticarComLimite = [limitarIp, authenticate, limitarUsuario];
@@ -48,7 +68,10 @@ function createRoutes({
       authenticate: autenticarComLimite,
     }),
   );
-  router.use('/invites', createInviteRoutes({ publicInviteController, publicLimits }));
+  router.use(
+    '/invites',
+    createInviteRoutes({ publicInviteController, publicLimits, rateLimitStore }),
+  );
   router.use('/layouts', createLayoutRoutes({ publicLimits }));
   router.use('/docs', createDocsRoutes({ publicLimits }));
   router.use(

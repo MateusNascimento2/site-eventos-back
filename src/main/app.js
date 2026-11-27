@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const { createRoutes } = require('../presentation/http/routes');
 const { notFound, errorHandler } = require('../presentation/http/middlewares/errorHandler');
 const { checkDatabase: defaultCheckDatabase } = require('../infrastructure/firebase/healthCheck');
@@ -25,6 +26,7 @@ function createApp({
   corsOrigin = createCorsOrigin(),
   publicLimits = LIMITES_PUBLICOS,
   protectedLimits = LIMITES_PROTEGIDOS,
+  rateLimitStore = null,
 } = {}) {
   const app = express();
 
@@ -32,11 +34,20 @@ function createApp({
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
 
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(
     cors({ origin: corsOrigin, exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Total-Pages'] }),
   );
   app.use(express.json({ limit: '16kb' }));
-  app.use(createRoutes({ checkDatabase, publicLimits, protectedLimits, ...container }));
+  app.use(
+    createRoutes({
+      checkDatabase,
+      publicLimits,
+      protectedLimits,
+      rateLimitStore,
+      ...container,
+    }),
+  );
   app.use(notFound);
   app.use(errorHandler);
 

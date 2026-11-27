@@ -56,8 +56,8 @@ describe('GET /docs', () => {
 
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/html/);
-    expect(res.text).toContain('SwaggerUIBundle');
-    expect(res.text).toContain('/docs/openapi.json');
+    expect(res.text).toContain('swagger-ui-bundle.js');
+    expect(res.text).toContain('/docs/swagger-init.js');
   });
 
   it('serve a especificação em JSON', async () => {

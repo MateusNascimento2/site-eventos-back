@@ -13,6 +13,18 @@ class FakeFirestore {
     }
   }
 
+  async runTransaction(funcao) {
+    const escritas = [];
+    const transacao = {
+      get: (ref) => ref.get(),
+      set: (ref, conteudo) => escritas.push(() => ref.set(conteudo)),
+      update: (ref, campos) => escritas.push(() => ref.update(campos)),
+    };
+    const resultado = await funcao(transacao);
+    for (const escrever of escritas) await escrever();
+    return resultado;
+  }
+
   // O caminho pode ser uma coleção ("events") ou uma subcoleção ("events/id/guests")
   collection(caminho) {
     const banco = this;

@@ -13,23 +13,42 @@ const PAGINA = `<!doctype html>
   <body>
     <div id="swagger-ui"></div>
     <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-    <script>
-      window.ui = SwaggerUIBundle({
-        url: '/docs/openapi.json',
-        dom_id: '#swagger-ui',
-        persistAuthorization: true,
-      });
-    </script>
+    <script src="/docs/swagger-init.js"></script>
   </body>
 </html>
 `;
+
+const INICIAR = `window.ui = SwaggerUIBundle({
+  url: '/docs/openapi.json',
+  dom_id: '#swagger-ui',
+  persistAuthorization: true,
+});
+`;
+
+const CDN = 'https://cdn.jsdelivr.net';
+const CSP_DOCS = [
+  "default-src 'self'",
+  `script-src 'self' ${CDN}`,
+  `style-src 'self' 'unsafe-inline' ${CDN}`,
+  `img-src 'self' data: ${CDN}`,
+  `font-src 'self' data: ${CDN}`,
+  "connect-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+].join('; ');
 
 function createDocsRoutes({ publicLimits }) {
   const router = Router();
   const limitarLeitura = createRateLimit(publicLimits.read);
 
   router.get('/', limitarLeitura, (req, res) => {
+    res.set('Content-Security-Policy', CSP_DOCS);
     res.type('html').send(PAGINA);
+  });
+
+  router.get('/swagger-init.js', limitarLeitura, (req, res) => {
+    res.type('js').send(INICIAR);
   });
 
   router.get('/openapi.json', limitarLeitura, (req, res) => {
